@@ -11,10 +11,10 @@ pub fn parse_input(input: String) -> Input {
     for (y, line) in input.lines().enumerate() {
         let mut t = String::new();
         for (x, c) in line.char_indices() {
-            if c.is_digit(10) {
+            if c.is_ascii_digit() {
                 t.push(c);
             } else {
-                if t.len() > 0 {
+                if !t.is_empty() {
                     res.0.insert(
                         (
                             i32::try_from(x - t.len()).unwrap(),
@@ -30,7 +30,7 @@ pub fn parse_input(input: String) -> Input {
                 }
             }
         }
-        if t.len() > 0 {
+        if !t.is_empty() {
             res.0.insert(
                 (
                     i32::try_from(line.len() - t.len() - 1).unwrap(),
@@ -102,7 +102,7 @@ pub fn part_two(input: &Input) -> Option<u32> {
             }
         }
         if parts.len() == 2 {
-            res += parts.get(0).unwrap().parse::<u32>().unwrap()
+            res += parts.first().unwrap().parse::<u32>().unwrap()
                 * parts.get(1).unwrap().parse::<u32>().unwrap();
         }
     }

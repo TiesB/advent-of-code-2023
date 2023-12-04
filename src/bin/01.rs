@@ -7,7 +7,7 @@ pub fn parse_input(input: String) -> Input {
 }
 
 fn line_to_n(line: Vec<char>) -> u32 {
-    let digits: Vec<&char> = line.iter().filter(|c| c.is_digit(10)).collect();
+    let digits: Vec<&char> = line.iter().filter(|c| c.is_ascii_digit()).collect();
     format!("{}{}", digits.first().unwrap(), digits.last().unwrap())
         .parse::<u32>()
         .unwrap()

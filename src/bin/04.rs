@@ -22,7 +22,7 @@ pub fn parse_input(input: String) -> Input {
                     .collect::<HashSet<u8>>()
             })
         })
-        .map(|mut sets| (sets.nth(0).unwrap(), sets.nth(0).unwrap()))
+        .map(|mut sets| (sets.next().unwrap(), sets.next().unwrap()))
         .collect()
 }
 
