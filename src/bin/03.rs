@@ -1,18 +1,12 @@
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::Error;
-use std::path::Path;
-use std::time::Instant;
+
+advent_of_code::solution!(3);
 
 type Position = (i32, i32);
 
 type Input = (HashMap<Position, String>, HashMap<Position, char>);
 
-type Output1 = usize;
-type Output2 = Output1;
-
-fn parse_input(input: &str) -> Input {
+pub fn parse_input(input: String) -> Input {
     let mut res = (HashMap::new(), HashMap::new());
     for (y, line) in input.lines().enumerate() {
         let mut t = String::new();
@@ -50,7 +44,7 @@ fn parse_input(input: &str) -> Input {
     res
 }
 
-fn solve1(input: &Input) -> Output1 {
+pub fn part_one(input: &Input) -> Option<u32> {
     let mut res = 0;
     let ds: Vec<(i32, i32)> = vec![
         (-1, 0),
@@ -68,19 +62,17 @@ fn solve1(input: &Input) -> Output1 {
             let y = pos.1;
             for d in &ds {
                 if input.1.contains_key(&(x + d.0, y + d.1)) {
-                    res += part.parse::<usize>().unwrap();
+                    res += part.parse::<u32>().unwrap();
                     continue 'outer;
                 }
             }
         }
     }
-    res
+    Some(res)
 }
 
-/**
- * Not too proud of this one
- */
-fn solve2(input: &Input) -> Output2 {
+// I'll need to optimize this one at some point
+pub fn part_two(input: &Input) -> Option<u32> {
     let mut res = 0;
     let ds: Vec<(i32, i32)> = vec![
         (-1, 0),
@@ -110,35 +102,30 @@ fn solve2(input: &Input) -> Output2 {
             }
         }
         if parts.len() == 2 {
-            res += parts.get(0).unwrap().parse::<usize>().unwrap()
-                * parts.get(1).unwrap().parse::<usize>().unwrap();
+            res += parts.get(0).unwrap().parse::<u32>().unwrap()
+                * parts.get(1).unwrap().parse::<u32>().unwrap();
         }
     }
-    res
+    Some(res)
 }
 
-pub fn main() -> Result<(), Error> {
-    let mut file = File::open(Path::new("inputs/day03.txt"))?;
-    let mut input_s = String::new();
-    file.read_to_string(&mut input_s)?;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    println!("Starting parsing");
-    let p_start = Instant::now();
-    let input = parse_input(&input_s);
-    let p_elapsed = p_start.elapsed();
+    #[test]
+    fn test_part_one() {
+        let result = part_one(&parse_input(advent_of_code::template::read_file(
+            "examples", DAY,
+        )));
+        assert_eq!(result, Some(4361));
+    }
 
-    println!("Starting part 1");
-    let s1_start = Instant::now();
-    let s1 = solve1(&input);
-    let s1_elapsed = s1_start.elapsed();
-
-    println!("Starting part 2");
-    let s2_start = Instant::now();
-    let s2 = solve2(&input);
-    let s2_elapsed = s2_start.elapsed();
-
-    println!("Parsing took {:.2?}", p_elapsed);
-    println!("Part 1({:.2?}): {}", s1_elapsed, s1);
-    println!("Part 2({:.2?}): {}", s2_elapsed, s2);
-    Ok(())
+    #[test]
+    fn test_part_two() {
+        let result = part_two(&parse_input(advent_of_code::template::read_file(
+            "examples", DAY,
+        )));
+        assert_eq!(result, Some(467835));
+    }
 }

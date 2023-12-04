@@ -1,26 +1,92 @@
-// #![feature(map_many_mut)]
-// #![feature(get_many_mut)]
+use advent_of_code::template::commands::{all, download, read, scaffold, solve};
+use args::{parse, AppArguments};
 
-use std::time::Instant;
-// #[macro_use]
-// extern crate scan_fmt;
+mod args {
+    use std::process;
 
-mod day01;
-mod day02;
-mod day03;
-mod day04;
+    use advent_of_code::Day;
+
+    pub enum AppArguments {
+        Download {
+            day: Day,
+        },
+        Read {
+            day: Day,
+        },
+        Scaffold {
+            day: Day,
+        },
+        Solve {
+            day: Day,
+            release: bool,
+            time: bool,
+            submit: Option<u8>,
+        },
+        All {
+            release: bool,
+            time: bool,
+        },
+    }
+
+    pub fn parse() -> Result<AppArguments, Box<dyn std::error::Error>> {
+        let mut args = pico_args::Arguments::from_env();
+
+        let app_args = match args.subcommand()?.as_deref() {
+            Some("all") => AppArguments::All {
+                release: args.contains("--release"),
+                time: args.contains("--time"),
+            },
+            Some("download") => AppArguments::Download {
+                day: args.free_from_str()?,
+            },
+            Some("read") => AppArguments::Read {
+                day: args.free_from_str()?,
+            },
+            Some("scaffold") => AppArguments::Scaffold {
+                day: args.free_from_str()?,
+            },
+            Some("solve") => AppArguments::Solve {
+                day: args.free_from_str()?,
+                release: args.contains("--release"),
+                submit: args.opt_value_from_str("--submit")?,
+                time: args.contains("--time"),
+            },
+            Some(x) => {
+                eprintln!("Unknown command: {x}");
+                process::exit(1);
+            }
+            None => {
+                eprintln!("No command specified.");
+                process::exit(1);
+            }
+        };
+
+        let remaining = args.finish();
+        if !remaining.is_empty() {
+            eprintln!("Warning: unknown argument(s): {remaining:?}.");
+        }
+
+        Ok(app_args)
+    }
+}
 
 fn main() {
-    let s = Instant::now();
-
-    println!("Day 1:");
-    day01::main().unwrap();
-    println!("Day 2:");
-    day02::main().unwrap();
-    println!("Day 3:");
-    day03::main().unwrap();
-    println!("Day 4:");
-    day04::main().unwrap();
-
-    println!("Total runtime: {:.2?}", s.elapsed());
+    match parse() {
+        Err(err) => {
+            eprintln!("Error: {err}");
+            std::process::exit(1);
+        }
+        Ok(args) => match args {
+            AppArguments::All { release, time } => all::handle(release, time),
+            AppArguments::Download { day } => download::handle(day),
+            AppArguments::Read { day } => read::handle(day),
+            AppArguments::Scaffold { day } => scaffold::handle(day),
+            AppArguments::Solve {
+                day,
+                release,
+                time,
+                submit,
+            } => solve::handle(day, release, time, submit),
+        },
+    };
 }
