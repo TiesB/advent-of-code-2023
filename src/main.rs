@@ -8,6 +8,7 @@ use std::time::Instant;
 mod day01;
 mod day02;
 mod day03;
+mod day04;
 
 fn main() {
     let s = Instant::now();
@@ -18,6 +19,8 @@ fn main() {
     day02::main().unwrap();
     println!("Day 3:");
     day03::main().unwrap();
+    println!("Day 4:");
+    day04::main().unwrap();
 
     println!("Total runtime: {:.2?}", s.elapsed());
 }
