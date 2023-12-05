@@ -17,7 +17,8 @@ type Map = HashSet<Mapping>;
 type Input = (Vec<i64>, Vec<Map>);
 
 pub fn parse_input(input: String) -> Input {
-    let input_parts = input.split(&"\n\n").collect_vec();
+    let r_parts = Regex::new(r"\n\r?\n").unwrap();
+    let input_parts = r_parts.split(&input).collect_vec();
     let r = Regex::new(r"(?<d>\d+) (?<s>\d+) (?<l>\d+)\n?").unwrap();
 
     let seeds = Regex::new(r"(\d+)")
