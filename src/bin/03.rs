@@ -3,52 +3,11 @@ use std::collections::{HashMap, HashSet};
 advent_of_code::solution!(3);
 
 type Position = (usize, usize);
-type OldPosition = (i32, i32);
 
 type Input = Vec<Vec<char>>;
 
 pub fn parse_input(input: String) -> Input {
     input.lines().map(|line| line.chars().collect()).collect()
-}
-
-pub fn old_parse_input(
-    input: &Input,
-) -> (HashMap<OldPosition, String>, HashMap<OldPosition, char>) {
-    let mut res = (HashMap::new(), HashMap::new());
-    for (y, line) in input.iter().enumerate() {
-        let mut t = String::new();
-        for (x, c) in line.iter().enumerate() {
-            if c.is_ascii_digit() {
-                t.push(*c);
-            } else {
-                if !t.is_empty() {
-                    res.0.insert(
-                        (
-                            i32::try_from(x - t.len()).unwrap(),
-                            i32::try_from(y).unwrap(),
-                        ),
-                        t.clone(),
-                    );
-                    t.clear();
-                }
-                if *c != '.' {
-                    res.1
-                        .insert((i32::try_from(x).unwrap(), i32::try_from(y).unwrap()), *c);
-                }
-            }
-        }
-        if !t.is_empty() {
-            res.0.insert(
-                (
-                    i32::try_from(line.len() - t.len() - 1).unwrap(),
-                    i32::try_from(y).unwrap(),
-                ),
-                t.clone(),
-            );
-            t.clear();
-        }
-    }
-    res
 }
 
 fn neighbors((x, y): &Position) -> HashSet<Position> {
@@ -68,30 +27,42 @@ fn neighbors((x, y): &Position) -> HashSet<Position> {
 }
 
 pub fn part_one(input: &Input) -> Option<u32> {
-    let parsed_input = old_parse_input(input);
+    let width = input[0].len();
+    let height = input.len();
+
+    let mut value = "".to_string();
+    let mut found = false;
+
     let mut res = 0;
-    let ds: Vec<(i32, i32)> = vec![
-        (-1, 0),
-        (1, 0),
-        (0, -1),
-        (0, 1),
-        (-1, -1),
-        (-1, 1),
-        (1, -1),
-        (1, 1),
-    ];
-    'outer: for (pos, part) in &parsed_input.0 {
-        for i in 0..part.len() {
-            let x = pos.0 + i32::try_from(i).unwrap();
-            let y = pos.1;
-            for d in &ds {
-                if parsed_input.1.contains_key(&(x + d.0, y + d.1)) {
-                    res += part.parse::<u32>().unwrap();
-                    continue 'outer;
+    for y in 0..height {
+        let mut x = 0;
+        while x < width {
+            while x < width && input[y][x].is_ascii_digit() {
+                value.push(input[y][x]);
+                if !found {
+                    for (xx, yy) in neighbors(&(x, y)) {
+                        if xx < width && yy < height {
+                            let c = input[yy][xx];
+                            if c != '.' && !c.is_ascii_digit() {
+                                found = true;
+                            }
+                        }
+                    }
                 }
+
+                x += 1;
             }
+
+            if found {
+                res += value.parse::<u32>().unwrap();
+            }
+
+            x += 1;
+            value.clear();
+            found = false;
         }
     }
+
     Some(res)
 }
 
