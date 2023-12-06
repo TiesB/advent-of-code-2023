@@ -1,54 +1,41 @@
 advent_of_code::solution!(1);
 
-type Input = Vec<String>;
+type Input = String;
 
 pub fn parse_input(input: String) -> Input {
-    input.lines().map(|line| line.to_string()).collect()
+    input
 }
 
-fn line_to_n(line: Vec<char>) -> u32 {
-    let digits: Vec<&char> = line.iter().filter(|c| c.is_ascii_digit()).collect();
-    format!("{}{}", digits.first().unwrap(), digits.last().unwrap())
-        .parse::<u32>()
-        .unwrap()
+fn line_to_n(line: &str) -> u32 {
+    let mut digits = line.chars().filter(|c| c.is_ascii_digit());
+    let first = digits.next().unwrap();
+    first.to_digit(10).unwrap() * 10 + digits.last().unwrap_or(first).to_digit(10).unwrap()
 }
 
 pub fn part_one(input: &Input) -> Option<u32> {
-    Some(
-        input
-            .iter()
-            .map(|line| line.chars().collect())
-            .map(line_to_n)
-            .sum(),
-    )
+    Some(input.lines().fold(0, |acc, line| acc + line_to_n(line)))
 }
 
-pub fn part_two(input: &Input) -> Option<u32> {
-    let dict = Vec::from([
-        ("one", "o1e"),
-        ("two", "t2o"),
-        ("three", "t3e"),
-        ("four", "f4r"),
-        ("five", "f5e"),
-        ("six", "s6x"),
-        ("seven", "s7n"),
-        ("eight", "e8t"),
-        ("nine", "n9e"),
-    ]);
+const DICT: [(&str, &str); 9] = [
+    ("one", "o1e"),
+    ("two", "t2o"),
+    ("three", "t3e"),
+    ("four", "f4r"),
+    ("five", "f5e"),
+    ("six", "s6x"),
+    ("seven", "s7n"),
+    ("eight", "e8t"),
+    ("nine", "n9e"),
+];
 
-    Some(
-        input
-            .iter()
-            .map(|line| {
-                let mut lc = line.clone();
-                for ele in &dict {
-                    lc = lc.replace(ele.0, ele.1)
-                }
-                lc.chars().collect()
-            })
-            .map(line_to_n)
-            .sum(),
-    )
+pub fn part_two(input: &Input) -> Option<u32> {
+    let mut i = input.clone();
+
+    for ele in &DICT {
+        i = i.replace(ele.0, ele.1)
+    }
+
+    Some(input.lines().fold(0, |acc, line| acc + line_to_n(line)))
 }
 
 #[cfg(test)]
