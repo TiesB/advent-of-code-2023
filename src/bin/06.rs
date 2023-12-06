@@ -37,50 +37,38 @@ pub fn parse_input_part1(input: &str) -> Vec<Race> {
     res
 }
 
-pub fn parse_input_part2(input: &str) -> (f64, f64) {
+type Part2Data = f64;
+pub fn parse_input_part2(input: &str) -> (Part2Data, Part2Data) {
     let mut lines = input.lines();
     let t_line = lines.next().unwrap();
     let d_line = lines.next().unwrap();
-    let t = t_line.replace(' ', "")[5..].parse::<f64>().unwrap();
-    let d = d_line.replace(' ', "")[9..].parse::<f64>().unwrap();
+    let t = t_line.replace(' ', "")[5..].parse::<Part2Data>().unwrap();
+    let d = d_line.replace(' ', "")[9..].parse::<Part2Data>().unwrap();
     (t, d)
 }
 
-fn gen_ds(max: usize) -> Vec<usize> {
-    (0..max).map(|t| t * max - t * t).collect()
+fn find_a(max: usize, record: usize) -> usize {
+    (max / record..max)
+        .find(|t| (t * (max - t)) > record)
+        .unwrap()
 }
 
-pub fn part_one(input: &Input) -> Option<u32> {
+pub fn part_one(input: &Input) -> Option<usize> {
     Some(
         parse_input_part1(input)
             .iter()
-            .map(|&(time, record)| {
-                // s = v * (T-t)
-                // v = a * t
-                // s = a * t * (T - t)
-                // s = a * t * T - a * t * t
-
-                // record = t * (T - t)
-                // record = t * T - t * t
-                // 0 = t^2 - T*t + record
-                // record / (T-t) = t
-                let mut n = 0;
-                for d in gen_ds(time) {
-                    if d > record {
-                        n += 1;
-                    }
-                }
-                n
-            })
+            .map(|&(time, record)| time - 2 * find_a(time, record) + 1)
             .product(),
     )
 }
 
-pub fn part_two(input: &Input) -> Option<f64> {
+pub fn part_two(input: &Input) -> Option<Part2Data> {
     let (time, record) = parse_input_part2(input);
+
     if let Roots::Two([a, b]) = find_roots_quadratic(1f64, -time, record) {
         return Some(b.ceil() - a.ceil());
     }
+
     None
 }
 
