@@ -50,8 +50,11 @@ fn gen_ds(max: usize) -> Vec<usize> {
     (0..max).map(|t| t * max - t * t).collect()
 }
 
-fn gen_ds_2(max: u64) -> Vec<u64> {
-    (0..max).map(|t| t * max - t * t).collect()
+fn gen_ds_2(max: u64, record: u64) -> Vec<u64> {
+    (0..max)
+        .map(|t| t * max - t * t)
+        .filter(|&d| d > record)
+        .collect()
 }
 
 pub fn part_one(input: &Input) -> Option<u32> {
@@ -78,9 +81,9 @@ pub fn part_one(input: &Input) -> Option<u32> {
 pub fn part_two(input: &Input) -> Option<usize> {
     let (time, record) = parse_input_part2(input);
     Some(
-        gen_ds_2(time)
+        gen_ds_2(time, record)
             .iter()
-            .filter(|&&d| d > record)
+            // .filter(|&&d| d >s record)
             .collect_vec()
             .len(),
     )
