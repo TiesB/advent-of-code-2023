@@ -9,7 +9,7 @@ type Card = (HashSet<u8>, HashSet<u8>);
 
 type Input = Vec<Card>;
 
-pub fn parse_input(input: String) -> Input {
+pub fn parse_input(input: &str) -> Input {
     let r = Regex::new(r"(\d+)").unwrap();
     input
         .lines()
@@ -34,9 +34,9 @@ fn number_of_wins(card: &Card) -> usize {
         .len()
 }
 
-pub fn part_one(input: &Input) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<u32> {
     Some(
-        input
+        parse_input(input)
             .iter()
             .map(number_of_wins)
             .map(|wins| {
@@ -50,8 +50,8 @@ pub fn part_one(input: &Input) -> Option<u32> {
     )
 }
 
-pub fn part_two(input: &Input) -> Option<u32> {
-    let ns = input.iter().map(number_of_wins).collect_vec();
+pub fn part_two(input: &str) -> Option<u32> {
+    let ns = parse_input(input).iter().map(number_of_wins).collect_vec();
     let len = ns.len();
     let mut s: HashMap<usize, u32> = HashMap::new();
     let mut res = 0;
@@ -74,17 +74,13 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&parse_input(advent_of_code::template::read_file(
-            "examples", DAY,
-        )));
+        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(13));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&parse_input(advent_of_code::template::read_file(
-            "examples", DAY,
-        )));
+        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(30));
     }
 }

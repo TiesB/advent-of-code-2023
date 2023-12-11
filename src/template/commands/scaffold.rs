@@ -8,17 +8,11 @@ use crate::Day;
 
 const MODULE_TEMPLATE: &str = r#"advent_of_code::solution!(DAY_NUMBER);
 
-type Input = Vec<String>;
-
-pub fn parse_input(input: String) -> Input {
-    input.lines().map(str::to_string).collect()
-}
-
-pub fn part_one(input: &Input) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<u32> {
     None
 }
 
-pub fn part_two(input: &Input) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<u32> {
     None
 }
 
@@ -28,13 +22,13 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&parse_input(advent_of_code::template::read_file("examples", DAY)));
+        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, None);
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&parse_input(advent_of_code::template::read_file("examples", DAY)));
+        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, None);
     }
 }

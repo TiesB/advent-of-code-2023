@@ -5,12 +5,6 @@ advent_of_code::solution!(6);
 
 type Race = (usize, usize);
 
-type Input = String;
-
-pub fn parse_input(input: String) -> String {
-    input
-}
-
 pub fn parse_input_part1(input: &str) -> Vec<Race> {
     let mut res = vec![];
     let mut lines = input.lines();
@@ -53,7 +47,7 @@ fn find_a(max: usize, record: usize) -> usize {
         .unwrap()
 }
 
-pub fn part_one(input: &Input) -> Option<usize> {
+pub fn part_one(input: &str) -> Option<usize> {
     Some(
         parse_input_part1(input)
             .iter()
@@ -62,7 +56,7 @@ pub fn part_one(input: &Input) -> Option<usize> {
     )
 }
 
-pub fn part_two(input: &Input) -> Option<Part2Data> {
+pub fn part_two(input: &str) -> Option<Part2Data> {
     let (time, record) = parse_input_part2(input);
 
     if let Roots::Two([a, b]) = find_roots_quadratic(1f64, -time, record) {
@@ -78,17 +72,13 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&parse_input(advent_of_code::template::read_file(
-            "examples", DAY,
-        )));
+        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(288));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&parse_input(advent_of_code::template::read_file(
-            "examples", DAY,
-        )));
+        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(71503f64));
     }
 }

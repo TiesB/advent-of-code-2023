@@ -11,7 +11,7 @@ type Game = Vec<Draw>;
 
 type Input = Vec<Game>;
 
-pub fn parse_input(input: String) -> Input {
+pub fn parse_input(input: &str) -> Input {
     input
         .lines()
         .map(|line| {
@@ -41,9 +41,9 @@ pub fn parse_input(input: String) -> Input {
         .collect()
 }
 
-pub fn part_one(input: &Input) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<u32> {
     Some(
-        input
+        parse_input(input)
             .iter()
             .enumerate()
             .map(|game| {
@@ -61,9 +61,9 @@ pub fn part_one(input: &Input) -> Option<u32> {
     )
 }
 
-pub fn part_two(input: &Input) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<u32> {
     Some(
-        input
+        parse_input(input)
             .iter()
             .map(|game| {
                 game.iter().fold(
@@ -97,17 +97,13 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&parse_input(advent_of_code::template::read_file(
-            "examples", DAY,
-        )));
+        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(8));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&parse_input(advent_of_code::template::read_file(
-            "examples", DAY,
-        )));
+        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(2286));
     }
 }

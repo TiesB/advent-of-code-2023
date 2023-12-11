@@ -40,7 +40,7 @@ macro_rules! solution {
 
         fn main() {
             use advent_of_code::template::runner::*;
-            let input = parse_input(advent_of_code::template::read_file("inputs", DAY));
+            let input = advent_of_code::template::read_file("inputs", DAY);
             run_part(part_one, &input, DAY, 1);
             run_part(part_two, &input, DAY, 2);
         }

@@ -6,7 +6,7 @@ type Position = (usize, usize);
 
 type Input = Vec<Vec<char>>;
 
-pub fn parse_input(input: String) -> Input {
+pub fn parse_input(input: &str) -> Input {
     input.lines().map(|line| line.chars().collect()).collect()
 }
 
@@ -26,9 +26,11 @@ fn neighbors((x, y): &Position) -> HashSet<Position> {
     .collect()
 }
 
-pub fn part_one(input: &Input) -> Option<u32> {
-    let width = input[0].len();
-    let height = input.len();
+pub fn part_one(input: &str) -> Option<u32> {
+    let parsed = parse_input(input);
+
+    let width = parsed[0].len();
+    let height = parsed.len();
 
     let mut value = "".to_string();
     let mut found = false;
@@ -37,12 +39,12 @@ pub fn part_one(input: &Input) -> Option<u32> {
     for y in 0..height {
         let mut x = 0;
         while x < width {
-            while x < width && input[y][x].is_ascii_digit() {
-                value.push(input[y][x]);
+            while x < width && parsed[y][x].is_ascii_digit() {
+                value.push(parsed[y][x]);
                 if !found {
                     for (xx, yy) in neighbors(&(x, y)) {
                         if xx < width && yy < height {
-                            let c = input[yy][xx];
+                            let c = parsed[yy][xx];
                             if c != '.' && !c.is_ascii_digit() {
                                 found = true;
                             }
@@ -67,9 +69,11 @@ pub fn part_one(input: &Input) -> Option<u32> {
 }
 
 // I'll need to optimize this one at some point
-pub fn part_two(input: &Input) -> Option<u32> {
-    let width = input[0].len();
-    let height = input.len();
+pub fn part_two(input: &str) -> Option<u32> {
+    let parsed = parse_input(input);
+
+    let width = parsed[0].len();
+    let height = parsed.len();
 
     let mut res = 0;
 
@@ -78,14 +82,14 @@ pub fn part_two(input: &Input) -> Option<u32> {
     let mut value = 0;
     let mut nearby: HashSet<Position> = HashSet::new();
 
-    for (y, line) in input.iter().enumerate() {
+    for (y, line) in parsed.iter().enumerate() {
         let mut x = 0;
         while x < width {
             while x < width && line[x].is_ascii_digit() {
                 value = value * 10 + line[x].to_digit(10).unwrap();
                 for (xx, yy) in neighbors(&(x, y)) {
                     if xx < width && yy < height {
-                        let c = input[yy][xx];
+                        let c = parsed[yy][xx];
                         if c != '.' && !c.is_ascii_digit() {
                             nearby.insert((xx, yy));
                         }
@@ -99,7 +103,7 @@ pub fn part_two(input: &Input) -> Option<u32> {
                 for position in &nearby {
                     symbols
                         .entry(*position)
-                        .or_insert((input[position.1][position.0], vec![]))
+                        .or_insert((parsed[position.1][position.0], vec![]))
                         .1
                         .push(value);
                 }
@@ -126,17 +130,13 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&parse_input(advent_of_code::template::read_file(
-            "examples", DAY,
-        )));
+        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(4361));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&parse_input(advent_of_code::template::read_file(
-            "examples", DAY,
-        )));
+        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(467835));
     }
 }
