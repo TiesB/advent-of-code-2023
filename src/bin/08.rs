@@ -1,80 +1,67 @@
 use num::integer::lcm;
-use petgraph::graphmap::DiGraphMap;
-use regex::Regex;
+use std::collections::HashMap;
 
 advent_of_code::solution!(8);
 
-type D<'a> = DiGraphMap<&'a str, ()>;
-type I<'a> = (Vec<char>, D<'a>);
-
-fn parse_input(input: &str) -> I {
-    let ins: Vec<char> = input.lines().next().unwrap().chars().collect();
-
-    let re = Regex::new(r"(?<s>\w\w\w) = \((?<d1>\w\w\w), (?<d2>\w\w\w)\)").unwrap();
-
-    let edges: Vec<(&str, &str)> = re.captures_iter(input).fold(Vec::new(), |mut e, cap| {
-        let s = cap.name("s").unwrap().as_str();
-        let d1 = cap.name("d1").unwrap().as_str();
-        let d2 = cap.name("d2").unwrap().as_str();
-        e.push((s, d1));
-        e.push((s, d2));
-
-        e
-    });
-    let g = DiGraphMap::<&str, ()>::from_edges(edges);
-    (ins, g)
-}
-
 pub fn part_one(input: &str) -> Option<usize> {
-    let parsed = parse_input(input);
+    let ins: Vec<char> = input.lines().next().unwrap().chars().collect();
+    let ins_len = ins.len();
 
-    let ins_len = parsed.0.len();
+    let map: HashMap<&str, (&str, &str)> = input
+        .lines()
+        .skip(2)
+        .map(|line| (&line[0..=2], (&line[7..=9], &line[12..=14])))
+        .collect();
+
     let mut cur = "AAA";
     let mut i = 0;
     while cur != "ZZZ" {
-        let ins = &parsed.0[i % ins_len];
-        // let n = input.1.neighbors(cur);
-        // println!("{:?} {:?}", cur, n.count());
-        cur = if *ins == 'L' || parsed.1.neighbors(cur).count() == 1 {
-            parsed.1.neighbors(cur).next()
+        let ins = ins[i % ins_len];
+
+        cur = if ins == 'L' {
+            map.get(cur).unwrap().0
         } else {
-            parsed.1.neighbors(cur).nth(1)
-        }
-        .unwrap();
-        // println!("{:?}", cur);
+            map.get(cur).unwrap().1
+        };
+
         i += 1;
     }
+
     Some(i)
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    let parsed = parse_input(input);
+    let ins: Vec<char> = input.lines().next().unwrap().chars().collect();
+    let ins_len = ins.len();
 
-    let ins_len = parsed.0.len();
-    Some(
-        parsed
-            .1
-            .nodes()
-            .filter(|n| n.ends_with('A'))
-            .map(|mut cur| {
-                let mut i = 0;
-                while !cur.ends_with('Z') {
-                    let ins = &parsed.0[i % ins_len];
-                    // let n = input.1.neighbors(cur);
-                    // println!("{:?} {:?}", cur, n.count());
-                    cur = if *ins == 'L' || parsed.1.neighbors(cur).count() == 1 {
-                        parsed.1.neighbors(cur).next()
-                    } else {
-                        parsed.1.neighbors(cur).nth(1)
-                    }
-                    .unwrap();
-                    // println!("{:?}", cur);
-                    i += 1;
-                }
-                i
-            })
-            .fold(1, lcm),
-    )
+    let mut starts: Vec<&str> = Vec::new();
+    let map: HashMap<&str, (&str, &str)> = input
+        .lines()
+        .skip(2)
+        .map(|line| {
+            if line[0..=2].ends_with('A') {
+                starts.push(&line[0..=2]);
+            }
+
+            (&line[0..=2], (&line[7..=9], &line[12..=14]))
+        })
+        .collect();
+
+    Some(starts.iter().fold(1, |agg, mut cur| {
+        let mut i = 0;
+        while !cur.ends_with('Z') {
+            let ins = ins[i % ins_len];
+
+            cur = if ins == 'L' {
+                &map.get(cur).unwrap().0
+            } else {
+                &map.get(cur).unwrap().1
+            };
+
+            i += 1;
+        }
+        lcm(agg, i)
+    }))
 }
 
 #[cfg(test)]
