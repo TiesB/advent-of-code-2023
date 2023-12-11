@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 advent_of_code::solution!(9);
 
 type I = Vec<Vec<isize>>;
@@ -13,7 +15,7 @@ fn parse_input(input: &str) -> I {
         .collect()
 }
 
-fn next(ns: &Vec<isize>) -> isize {
+fn next(ns: &[isize]) -> isize {
     let ds: Vec<isize> = (1..ns.len()).map(|i| ns[i] - ns[i - 1]).collect();
     if ds.iter().all(|n| *n == 0) {
         0
@@ -36,7 +38,7 @@ pub fn part_two(input: &str) -> Option<isize> {
             .iter()
             .map(|line| line.iter().rev().collect())
             .fold(0, |res, line: Vec<&isize>| {
-                res + *line[line.len() - 1] + next(&line.iter().map(|n| **n).collect())
+                res + *line[line.len() - 1] + next(&line.iter().map(|n| **n).collect_vec())
             }),
     )
 }
