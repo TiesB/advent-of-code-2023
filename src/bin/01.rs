@@ -29,7 +29,7 @@ pub fn part_two(input: &String) -> Option<u32> {
         i = i.replace(ele.0, ele.1)
     }
 
-    Some(input.lines().fold(0, |acc, line| acc + line_to_n(line)))
+    Some(i.lines().fold(0, |acc, line| acc + line_to_n(line)))
 }
 
 #[cfg(test)]
