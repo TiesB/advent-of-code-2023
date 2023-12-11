@@ -147,21 +147,17 @@ impl Grid {
 
         let mut count = 0;
         for (y, row) in self.grid.iter().enumerate() {
+            let mut is_inside = false;
             for x in 0..row.len() {
-                if l.contains_key(&(x, y)) {
-                    continue;
+                if let Some(tile) = l.get(&(x, y)) {
+                    match tile {
+                        Tile::Pipe(Direction::North, _) => is_inside = !is_inside,
+                        Tile::Start => panic!("aaa"),
+                        _ => (),
+                    }
+                } else if is_inside {
+                    count += 1;
                 }
-
-                count += (0..x)
-                    .filter(|xx| {
-                        l.get(&(*xx, y)).is_some_and(|tile| match tile {
-                            Tile::Pipe(Direction::North, _) => true,
-                            Tile::Start => panic!("aaa"),
-                            _ => false,
-                        })
-                    })
-                    .count()
-                    % 2
             }
         }
 
