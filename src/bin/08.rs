@@ -1,4 +1,5 @@
 use num::integer::lcm;
+use rayon::prelude::*;
 use std::collections::HashMap;
 
 advent_of_code::solution!(8);
@@ -46,22 +47,26 @@ pub fn part_two(input: &str) -> Option<usize> {
             (&line[0..=2], (&line[7..=9], &line[12..=14]))
         })
         .collect();
+    Some(
+        starts
+            .par_iter()
+            .map(|mut cur| {
+                let mut i = 0;
+                while !cur.ends_with('Z') {
+                    let ins = ins[i % ins_len];
 
-    Some(starts.iter().fold(1, |agg, mut cur| {
-        let mut i = 0;
-        while !cur.ends_with('Z') {
-            let ins = ins[i % ins_len];
+                    cur = if ins == 'L' {
+                        &map.get(cur).unwrap().0
+                    } else {
+                        &map.get(cur).unwrap().1
+                    };
 
-            cur = if ins == 'L' {
-                &map.get(cur).unwrap().0
-            } else {
-                &map.get(cur).unwrap().1
-            };
-
-            i += 1;
-        }
-        lcm(agg, i)
-    }))
+                    i += 1;
+                }
+                i
+            })
+            .reduce(|| 1, lcm),
+    )
 }
 
 #[cfg(test)]
