@@ -41,18 +41,17 @@ pub fn parse_input(input: &str) -> Input {
         .collect()
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<usize> {
     Some(
         parse_input(input)
             .iter()
             .enumerate()
-            .map(|game| {
+            .map(|(id, game)| {
                 if game
-                    .1
                     .iter()
                     .all(|draw| draw.red <= 12 && draw.green <= 13 && draw.blue <= 14)
                 {
-                    u32::try_from(game.0).unwrap() + 1
+                    id + 1
                 } else {
                     0
                 }
