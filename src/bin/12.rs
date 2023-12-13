@@ -6,44 +6,52 @@ advent_of_code::solution!(12);
 
 fn check(
     input: &[char],
-    mut reqs: &[usize],
-    in_seq: bool,
-    map: &mut HashMap<(Vec<char>, Vec<usize>, bool), usize>,
+    reqs: &[usize],
+    i: usize,
+    ri: usize,
+    current_len: usize,
+    map: &mut HashMap<(usize, usize, usize), usize>,
 ) -> usize {
-    let key = (input.to_owned(), reqs.to_owned(), in_seq);
+    let key = (i, ri, current_len);
 
     if let Some(res) = map.get(&key) {
         return *res;
     }
 
     match (
-        input.is_empty(),
-        (reqs.is_empty() || (reqs.len() == 1 && reqs[0] == 0)),
+        i == input.len(),
+        ((ri == reqs.len() && current_len == 0)
+            || (ri == reqs.len() - 1 && reqs[ri] == current_len)),
     ) {
         (true, true) => {
             return 1;
         }
-        (true, false) => return 0,
+        (true, false) => {
+            return 0;
+        }
         _ => (),
     }
 
-    if reqs.is_empty() {
-        reqs = &[0];
-    }
-
-    let res = match (input[0], reqs.first().unwrap_or(&0), in_seq) {
-        ('.', &0, false) => check(&input[1..], &reqs[1..], false, map),
-        ('.', _, false) => check(&input[1..], reqs, false, map),
-        ('?', _, _) => {
-            check(&[&['#'], &input[1..]].concat(), reqs, in_seq, map)
-                + check(&[&['.'], &input[1..]].concat(), reqs, in_seq, map)
+    let res = match (input[i], *reqs.get(ri).unwrap_or(&0), current_len) {
+        ('.', r, cur) if r > 0 && r == cur => check(input, reqs, i + 1, ri + 1, 0, map),
+        ('.', _, 0) => check(input, reqs, i + 1, ri, 0, map),
+        ('#', r, _) if r > 0 => check(input, reqs, i + 1, ri, current_len + 1, map),
+        ('?', r, c) => {
+            // This should be refactored
+            (if r > 0 {
+                check(input, reqs, i + 1, ri, current_len + 1, map)
+            } else {
+                0
+            }) + (if r > 0 && r == c {
+                check(input, reqs, i + 1, ri + 1, 0, map)
+            } else {
+                0
+            }) + (if c == 0 {
+                check(input, reqs, i + 1, ri, 0, map)
+            } else {
+                0
+            })
         }
-        ('#', &len, _) if len > 0 => check(
-            &input[1..],
-            &[&[len - 1], &reqs[1..]].concat(),
-            len > 1,
-            map,
-        ),
         _ => 0,
     };
 
@@ -61,7 +69,7 @@ pub fn part_one(input: &str) -> Option<usize> {
                 let pattern: Vec<char> = parts[0].chars().collect();
                 let reqs: Vec<usize> = parts[1].split(',').map(|s| s.parse().unwrap()).collect();
 
-                check(&pattern, &reqs, false, &mut HashMap::new())
+                check(&pattern, &reqs, 0, 0, 0, &mut HashMap::new())
             })
             .sum(),
     )
@@ -92,7 +100,9 @@ pub fn part_two(input: &str) -> Option<usize> {
                 check(
                     &repeated_pattern,
                     &repeated_reqs,
-                    false,
+                    0,
+                    0,
+                    0,
                     &mut HashMap::new(),
                 )
             })
