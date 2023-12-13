@@ -1,7 +1,6 @@
 use itertools::Itertools;
+use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
-
-use regex::Regex;
 
 advent_of_code::solution!(4);
 
@@ -10,15 +9,13 @@ type Card = (HashSet<u8>, HashSet<u8>);
 type Input = Vec<Card>;
 
 pub fn parse_input(input: &str) -> Input {
-    let r = Regex::new(r"(\d+)").unwrap();
     input
         .lines()
         .map(|line| line.split(&[':', '|']))
-        .map(|mut parts| {
-            parts.next();
-            parts.map(|part| {
-                r.find_iter(part)
-                    .map(|cap| cap.as_str().parse::<u8>().unwrap())
+        .map(|parts| {
+            parts.skip(1).map(|part| {
+                part.split_whitespace()
+                    .map(|d| d.parse().unwrap())
                     .collect::<HashSet<u8>>()
             })
         })
@@ -30,15 +27,23 @@ fn number_of_wins(card: &Card) -> usize {
     card.0
         .iter()
         .filter(|winning_number| card.1.contains(winning_number))
-        .collect_vec()
-        .len()
+        .count()
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
     Some(
-        parse_input(input)
-            .iter()
-            .map(number_of_wins)
+        input
+            .par_lines()
+            .map(|line| line.split(&[':', '|']))
+            .map(|parts| {
+                parts.skip(1).map(|part| {
+                    part.split_whitespace()
+                        .map(|d| d.parse().unwrap())
+                        .collect::<HashSet<u8>>()
+                })
+            })
+            .map(|mut sets| (sets.next().unwrap(), sets.next().unwrap()))
+            .map(|card| number_of_wins(&card))
             .map(|wins| {
                 if wins > 0 {
                     2_u32.pow((wins - 1).try_into().unwrap())
@@ -54,18 +59,23 @@ pub fn part_two(input: &str) -> Option<u32> {
     let ns = parse_input(input).iter().map(number_of_wins).collect_vec();
     let len = ns.len();
     let mut s: HashMap<usize, u32> = HashMap::new();
-    let mut res = 0;
-    for (i, n) in ns.iter().rev().enumerate() {
-        let id = len - i - 1;
-        let mut sum = 1;
-        for d in 1..=*n {
-            let cid = id + d;
-            sum += s.get(&cid).unwrap();
-        }
-        s.insert(id, sum);
-        res += sum;
-    }
-    Some(res)
+
+    Some(
+        ns.iter()
+            .rev()
+            .enumerate()
+            .map(|(i, n)| {
+                let id = len - i - 1;
+                let mut sum = 1;
+                for d in 1..=*n {
+                    let cid = id + d;
+                    sum += s.get(&cid).unwrap();
+                }
+                s.insert(id, sum);
+                sum
+            })
+            .sum(),
+    )
 }
 
 #[cfg(test)]
