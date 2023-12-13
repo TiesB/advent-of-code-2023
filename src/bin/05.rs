@@ -1,60 +1,43 @@
-use std::{collections::HashSet, ops::Range};
+use std::ops::Range;
 
 use itertools::Itertools;
-use regex::Regex;
 
 advent_of_code::solution!(5);
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Mapping {
-    destination: i64,
-    source: i64,
-    length: i64,
-}
-
-type Map = HashSet<Mapping>;
-
-type Input = (Vec<i64>, Vec<Map>);
-
-pub fn parse_input(input: &str) -> Input {
-    let r_parts = Regex::new(r"\n\r?\n").unwrap();
-    let input_parts = r_parts.split(input).collect_vec();
-    let r = Regex::new(r"(?<d>\d+) (?<s>\d+) (?<l>\d+)\n?").unwrap();
-
-    let seeds = Regex::new(r"(\d+)")
+pub fn part_one(input: &str) -> Option<i64> {
+    let mut parts = input.split("\n\n");
+    let mut seeds: Vec<i64> = parts
+        .next()
         .unwrap()
-        .find_iter(input_parts[0])
-        .map(|m| m.as_str().parse().unwrap())
+        .split_whitespace()
+        .skip(1)
+        .map(|seed| seed.parse().unwrap())
         .collect();
 
-    let maps = input_parts[1..]
-        .iter()
-        .map(|m| {
-            r.captures_iter(m)
-                .map(|cap| Mapping {
-                    destination: cap.name("d").unwrap().as_str().parse::<i64>().unwrap(),
-                    source: cap.name("s").unwrap().as_str().parse::<i64>().unwrap(),
-                    length: cap.name("l").unwrap().as_str().parse::<i64>().unwrap(),
+    let maps: Vec<Vec<(i64, i64, i64)>> = parts
+        .map(|part| {
+            part.lines()
+                .skip(1)
+                .map(|line| {
+                    let ds: Vec<i64> = line
+                        .split_whitespace()
+                        .map(|d| d.parse().unwrap())
+                        .collect();
+                    (ds[0], ds[1], ds[2])
                 })
                 .collect()
         })
         .collect();
 
-    (seeds, maps)
-}
-
-pub fn part_one(input: &str) -> Option<i64> {
-    let parsed = parse_input(input);
-    let mut seeds = parsed.0.clone();
-    for map in &parsed.1 {
+    for map in maps {
         seeds = seeds
             .iter()
             .map(|seed| {
-                for mapping in map {
-                    let d = *seed - mapping.source;
+                for mapping in &map {
+                    let d = seed - mapping.1;
 
-                    if d >= 0 && d < mapping.length {
-                        return mapping.destination + d;
+                    if d >= 0 && d < mapping.2 {
+                        return mapping.0 + d;
                     }
                 }
                 *seed
@@ -65,48 +48,68 @@ pub fn part_one(input: &str) -> Option<i64> {
 }
 
 pub fn part_two(input: &str) -> Option<i64> {
-    let parsed = parse_input(input);
-    let mut ranges: HashSet<Range<i64>> = HashSet::new();
-    let seeds_data = parsed.0.clone();
-    for i in (0..seeds_data.len()).step_by(2) {
-        let start = seeds_data[i];
-        let length = seeds_data[i + 1];
-        ranges.insert(start..start + length);
-    }
+    let mut parts = input.split("\n\n");
+    let mut seeds_ranges: Vec<Range<i64>> = parts
+        .next()
+        .unwrap()
+        .split_whitespace()
+        .skip(1)
+        .tuples()
+        .map(|(start, length)| {
+            let start = start.parse::<i64>().unwrap();
+            let length = length.parse::<i64>().unwrap();
+            start..start + length
+        })
+        .collect();
 
-    for map in &parsed.1 {
-        let mut new_ranges: HashSet<Range<i64>> = HashSet::new();
-        for r in ranges {
-            let mut rr = r.clone();
+    let maps: Vec<Vec<(i64, i64, i64)>> = parts
+        .map(|part| {
+            part.lines()
+                .skip(1)
+                .map(|line| {
+                    let ds: Vec<i64> = line
+                        .split_whitespace()
+                        .map(|d| d.parse().unwrap())
+                        .collect();
+                    (ds[0], ds[1], ds[2])
+                })
+                .collect()
+        })
+        .collect();
+
+    for map in &maps {
+        let mut new_ranges: Vec<Range<i64>> = Vec::new();
+        for mut r in seeds_ranges {
             for mapping in map {
-                if !rr.is_empty() {
-                    let transformation = mapping.destination - mapping.source;
-                    let mapping_range = mapping.source..mapping.source + mapping.length;
+                if !r.is_empty() {
+                    let transformation = mapping.0 - mapping.1;
+                    let mapping_range = mapping.1..mapping.1 + mapping.2;
 
                     // Case rr.start < mapping_range.start < mapping_range.end < rr.end is not covered, but this does not seem to matter for the puzzle input
-                    if mapping_range.contains(&rr.start) {
-                        if mapping_range.contains(&rr.end) {
-                            new_ranges.insert(rr.start + transformation..rr.end + transformation);
-                            rr = rr.start..rr.start;
+                    if mapping_range.contains(&r.start) {
+                        if mapping_range.contains(&r.end) {
+                            new_ranges.push(r.start + transformation..r.end + transformation);
+                            r = r.start..r.start;
                         } else {
-                            new_ranges.insert(
-                                rr.start + transformation..mapping_range.end + transformation,
-                            );
-                            rr = mapping_range.end..rr.end;
+                            new_ranges
+                                .push(r.start + transformation..mapping_range.end + transformation);
+                            r = mapping_range.end..r.end;
                         }
-                    } else if mapping_range.contains(&rr.end) {
-                        new_ranges.insert(mapping.destination..rr.end + transformation);
-                        rr = rr.start..mapping.source;
+                    } else if mapping_range.contains(&r.end) {
+                        new_ranges.push(mapping.0..r.end + transformation);
+                        r = r.start..mapping.1;
                     }
                 }
             }
-            if !rr.is_empty() {
-                new_ranges.insert(rr);
+            if !r.is_empty() {
+                new_ranges.push(r);
             }
         }
-        ranges = new_ranges;
+        seeds_ranges = new_ranges;
     }
-    ranges.iter().map(|r| r.start).min()
+    // println!("===== {seeds_ranges:?} +++++++++");
+
+    seeds_ranges.iter().map(|r| r.start).min()
 }
 
 #[cfg(test)]
