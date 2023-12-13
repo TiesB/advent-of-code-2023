@@ -16,17 +16,14 @@ fn find_horizontal(pattern: &Pattern, num_error: usize) -> Option<usize> {
     'outer: for y in 1..height {
         let mut error = 0;
 
-        let lower = 0;
-        let upper = min(y, height - y);
+        let max_d = min(y, height - y);
 
-        if lower >= upper {
-            continue;
-        }
-        for i in lower..upper {
-            let l = y.saturating_sub(i + 1);
-            let r = y + i;
-            for xx in 0..pattern[l].len() {
-                if pattern[l][xx] != pattern[r][xx] {
+        for d in 0..max_d {
+            let above = y.saturating_sub(d + 1);
+            let below = y + d;
+
+            for x in 0..pattern[above].len() {
+                if pattern[above][x] != pattern[below][x] {
                     error += 1;
 
                     if error > num_error {
@@ -35,6 +32,7 @@ fn find_horizontal(pattern: &Pattern, num_error: usize) -> Option<usize> {
                 }
             }
         }
+
         if error == num_error {
             return Some(y);
         }
@@ -48,17 +46,14 @@ fn find_vertical(pattern: &Pattern, num_error: usize) -> Option<usize> {
     'outer: for x in 1..width {
         let mut error = 0;
 
-        let lower = 0;
-        let upper = min(x, width - x);
+        let max_d = min(x, width - x);
 
-        if lower >= upper {
-            continue;
-        }
-        for i in lower..upper {
-            let l = x.saturating_sub(i + 1);
-            let r = x + i;
+        for d in 0..max_d {
+            let left = x.saturating_sub(d + 1);
+            let right = x + d;
+
             for row in pattern {
-                if row[l] != row[r] {
+                if row[left] != row[right] {
                     error += 1;
 
                     if error > num_error {
@@ -67,6 +62,7 @@ fn find_vertical(pattern: &Pattern, num_error: usize) -> Option<usize> {
                 }
             }
         }
+
         if error == num_error {
             return Some(x);
         }
