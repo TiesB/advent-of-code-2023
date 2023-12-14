@@ -1,12 +1,10 @@
 use indexmap::IndexMap;
-use itertools::Itertools;
 
 advent_of_code::solution!(15);
 
 fn hash(s: &str) -> usize {
     s.chars().fold(0, |mut h, c| {
-        let d = c as usize;
-        h += d;
+        h += c as usize;
         h *= 17;
         h %= 256;
         h
@@ -14,36 +12,32 @@ fn hash(s: &str) -> usize {
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    let line = input.lines().collect_vec()[0];
-
-    Some(line.split(',').map(hash).sum())
+    Some(input.split(',').map(hash).sum())
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    let line = input.lines().collect_vec()[0];
-
-    let mut boxes: Vec<IndexMap<&str, usize>> = vec![IndexMap::new(); 256];
-
-    for part in line.split(',') {
-        if part.ends_with('-') {
-            let label = &part[0..&part.len() - 1];
-
-            boxes[hash(label)].shift_remove(&label);
-        } else {
-            let (label, lens) = part.split_once('=').unwrap();
-
-            boxes[hash(label)].insert(label, lens.parse::<usize>().unwrap());
-        }
-    }
-
     Some(
-        boxes
+        input
+            .split(',')
+            .fold(vec![IndexMap::new(); 256], |mut boxes, step| {
+                if step.ends_with('-') {
+                    let label = &step[0..&step.len() - 1];
+
+                    boxes[hash(label)].shift_remove(&label);
+                } else {
+                    let (label, lens) = step.split_once('=').unwrap();
+
+                    boxes[hash(label)].insert(label, lens.parse::<usize>().unwrap());
+                }
+
+                boxes
+            })
             .iter()
             .enumerate()
-            .map(|(i, b)| {
+            .map(|(box_i, b)| {
                 b.iter()
                     .enumerate()
-                    .map(|(j, lens)| (i + 1) * (j + 1) * lens.1)
+                    .map(|(lens_i, lens)| (box_i + 1) * (lens_i + 1) * lens.1)
                     .sum::<usize>()
             })
             .sum(),
