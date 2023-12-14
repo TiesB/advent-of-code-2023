@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use itertools::Itertools;
 
 advent_of_code::solution!(15);
@@ -21,29 +22,17 @@ pub fn part_one(input: &str) -> Option<usize> {
 pub fn part_two(input: &str) -> Option<usize> {
     let line = input.lines().collect_vec()[0];
 
-    let mut boxes: Vec<Vec<(&str, usize)>> = vec![vec![]; 256];
+    let mut boxes: Vec<IndexMap<&str, usize>> = vec![IndexMap::new(); 256];
 
     for part in line.split(',') {
         if part.ends_with('-') {
             let label = &part[0..&part.len() - 1];
 
-            boxes[hash(label)].retain(|(cur_label, _)| *cur_label != label);
+            boxes[hash(label)].shift_remove(&label);
         } else {
-            let (label, lens_s) = part.split_once('=').unwrap();
-            let lens = lens_s.parse::<usize>().unwrap();
-            let b = &mut boxes[hash(label)];
+            let (label, lens) = part.split_once('=').unwrap();
 
-            let mut found = false;
-            for cur in &mut *b {
-                if cur.0 == label {
-                    *cur = (label, lens);
-                    found = true;
-                    break;
-                }
-            }
-            if !found {
-                b.push((label, lens));
-            }
+            boxes[hash(label)].insert(label, lens.parse::<usize>().unwrap());
         }
     }
 
