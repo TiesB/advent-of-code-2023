@@ -14,7 +14,7 @@ struct Grid {
 }
 
 impl Grid {
-    pub fn rotated_cw(&self) -> Grid {
+    pub fn rotated_cw_clone(&self) -> Self {
         let mut rotated: GridT = (0..self.grid[0].len()).map(|_| vec![]).collect();
 
         self.grid.iter().rev().for_each(|original_row| {
@@ -23,10 +23,10 @@ impl Grid {
             }
         });
 
-        Grid { grid: rotated }
+        Self { grid: rotated }
     }
 
-    pub fn tilted(&self) -> Grid {
+    pub fn tilted_clone(&self) -> Self {
         let width = self.grid[0].len();
         let mut rocks: Vec<usize> = vec![0; width];
         let mut new_grid = self.clone();
@@ -67,8 +67,8 @@ impl Grid {
 }
 
 impl From<&str> for Grid {
-    fn from(s: &str) -> Grid {
-        Grid {
+    fn from(s: &str) -> Self {
+        Self {
             grid: s.lines().map(|line| line.chars().collect()).collect(),
         }
     }
@@ -121,7 +121,7 @@ pub fn part_two(input: &str) -> Option<usize> {
 
     for cycle in 1..=n {
         for _ in 0..4 {
-            grid = grid.tilted().rotated_cw()
+            grid = grid.tilted_clone().rotated_cw_clone()
         }
 
         let hash = calculate_hash(&grid);
