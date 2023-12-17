@@ -5,7 +5,6 @@ advent_of_code::solution!(17);
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 enum Direction {
-    Start,
     Horizontal(isize),
     Vertical(isize),
 }
@@ -23,12 +22,6 @@ impl Direction {
                 Direction::Horizontal(1),
                 Direction::Vertical(*d),
             ],
-            Direction::Start => vec![
-                Direction::Horizontal(-1),
-                Direction::Horizontal(1),
-                Direction::Vertical(-1),
-                Direction::Vertical(1),
-            ],
         }
     }
 
@@ -36,7 +29,6 @@ impl Direction {
         match self {
             Direction::Horizontal(d) => (*d, 0),
             Direction::Vertical(d) => (0, *d),
-            _ => panic!(),
         }
     }
 }
@@ -96,9 +88,6 @@ impl Grid {
 
         for next in dir.get_next() {
             let is_straight_on = next == *dir;
-            if *dir != Direction::Start && !is_straight_on && num_of_steps_in_dir + 4 < 5 {
-                continue;
-            }
             if is_straight_on && num_of_steps_in_dir + 1 > 10 {
                 continue;
             }
@@ -177,7 +166,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 
     Some(
         dijkstra(
-            &((0, 0), Direction::Start, 0),
+            &((0, 0), Direction::Horizontal(1), 0),
             |state| grid.successors_part_1(state),
             |state| grid.success_part_1(state),
         )
@@ -191,7 +180,7 @@ pub fn part_two(input: &str) -> Option<usize> {
 
     Some(
         dijkstra(
-            &((0, 0), Direction::Start, 0),
+            &((0, 0), Direction::Horizontal(1), 0),
             |state| grid.successors_part_2(state),
             |state| grid.success_part_2(state),
         )
