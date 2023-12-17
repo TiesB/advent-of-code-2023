@@ -1,42 +1,34 @@
 use std::{
     collections::HashMap,
-    fmt::Display,
     hash::{DefaultHasher, Hash, Hasher},
 };
 
+use pathfinding::matrix::Matrix;
+
 advent_of_code::solution!(14);
 
-type GridT = Vec<Vec<char>>;
-
-#[derive(Clone, Eq, Hash, PartialEq)]
-struct Grid {
-    grid: GridT,
+trait Platform {
+    fn tilt(&mut self);
+    fn load(&self) -> usize;
 }
 
-impl Grid {
-    pub fn rotated_cw_clone(&self) -> Self {
-        let mut rotated: GridT = (0..self.grid[0].len()).map(|_| vec![]).collect();
+impl Platform for Matrix<char> {
+    fn tilt(&mut self) {
+        let mut rocks: Vec<usize> = vec![0; self.columns];
 
-        self.grid.iter().rev().for_each(|original_row| {
-            for (item, transposed_row) in original_row.iter().zip(&mut rotated) {
-                transposed_row.push(*item);
-            }
-        });
+        // let mut moved_to: HashSet<(usize, usize)> = HashSet::new();
 
-        Self { grid: rotated }
-    }
-
-    pub fn tilted_clone(&self) -> Self {
-        let width = self.grid[0].len();
-        let mut rocks: Vec<usize> = vec![0; width];
-        let mut new_grid = self.clone();
-
-        for (y, row) in self.grid.iter().enumerate() {
-            for (x, c) in row.iter().enumerate() {
-                match *c {
+        for y in 0..self.rows {
+            for x in 0..self.columns {
+                let c = self[(y, x)];
+                match c {
                     'O' => {
-                        new_grid.grid[y][x] = '.';
-                        new_grid.grid[rocks[x]][x] = 'O';
+                        // if moved_to.contains(&(y, x)) {
+                        //     continue;
+                        // }
+                        self[(y, x)] = '.';
+                        self[(rocks[x], x)] = 'O';
+                        // moved_to.insert((rocks[x], x));
                         rocks[x] += 1;
                     }
                     '#' => {
@@ -46,15 +38,13 @@ impl Grid {
                 }
             }
         }
-
-        new_grid
     }
 
-    pub fn load(&self) -> usize {
-        let height = self.grid.len();
+    fn load(&self) -> usize {
+        let height = self.rows;
 
         let mut res = 0;
-        for (y, row) in self.grid.iter().enumerate() {
+        for (y, row) in self.iter().enumerate() {
             for c in row {
                 if *c == 'O' {
                     res += height - y;
@@ -66,30 +56,14 @@ impl Grid {
     }
 }
 
-impl From<&str> for Grid {
-    fn from(s: &str) -> Self {
-        Self {
-            grid: s.lines().map(|line| line.chars().collect()).collect(),
-        }
-    }
-}
-
-impl Display for Grid {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let strings: Vec<String> = self.grid.iter().map(|line| line.iter().collect()).collect();
-        write!(f, "{}", strings.join("\n"))
-    }
-}
-
 pub fn part_one(input: &str) -> Option<usize> {
-    let grid: Grid = Grid::from(input);
-    let height = grid.grid.len();
-    let width = grid.grid[0].len();
+    let matrix = Matrix::from_rows(input.lines().map(|line| line.chars())).unwrap();
+    let height = matrix.rows;
 
-    let mut rocks: Vec<usize> = vec![0; width];
+    let mut rocks: Vec<usize> = vec![0; matrix.columns];
 
     let mut res = 0;
-    for (y, row) in grid.grid.iter().enumerate() {
+    for (y, row) in matrix.iter().enumerate() {
         for (x, c) in row.iter().enumerate() {
             match *c {
                 'O' => {
@@ -115,21 +89,24 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
 
 pub fn part_two(input: &str) -> Option<usize> {
     let n = 1000000000;
-    let mut grid: Grid = Grid::from(input);
+
+    let mut matrix: Matrix<char> =
+        Matrix::from_rows(input.lines().map(|line| line.chars())).unwrap();
 
     let mut m: HashMap<u64, usize> = HashMap::new();
 
     for cycle in 1..=n {
         for _ in 0..4 {
-            grid = grid.tilted_clone().rotated_cw_clone()
+            matrix.tilt();
+            matrix.rotate_cw(1);
         }
 
-        let hash = calculate_hash(&grid);
+        let hash = calculate_hash(&matrix);
         if let Some(prev) = m.get(&hash) {
             let cycle_length = cycle - prev;
 
             if (n - prev) % cycle_length == 0 {
-                return Some(grid.load());
+                return Some(matrix.load());
             }
         } else {
             m.insert(hash, cycle);
