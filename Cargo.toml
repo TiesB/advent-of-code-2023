@@ -17,6 +17,7 @@ test_lib = []
 indexmap = "2.1.0"
 itertools = "0.12.0"
 num = "0.4.1"
+pathfinding = "4.6.0"
 petgraph = "0.6.4"
 pico-args = "0.5.0"
 rayon = "1.8.0"
