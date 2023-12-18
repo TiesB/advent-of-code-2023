@@ -28,8 +28,8 @@ impl Direction {
 
     pub fn get_d(&self) -> (isize, isize) {
         match self {
-            Direction::Horizontal(d) => (*d, 0),
-            Direction::Vertical(d) => (0, *d),
+            Direction::Horizontal(d) => (0, *d),
+            Direction::Vertical(d) => (*d, 0),
         }
     }
 }
@@ -48,7 +48,7 @@ struct Grid {
 impl Grid {
     pub fn successors_part_1(
         &self,
-        ((x, y), dir, num_of_steps_in_dir): &State,
+        ((y, x), dir, num_of_steps_in_dir): &State,
     ) -> Vec<(State, usize)> {
         let mut res = vec![];
 
@@ -59,11 +59,11 @@ impl Grid {
             }
 
             let d = next.get_d();
-            match (x.checked_add_signed(d.0), y.checked_add_signed(d.1)) {
-                (Some(new_x), Some(new_y)) if new_x < self.width && new_y < self.height => res
+            match (y.checked_add_signed(d.0), x.checked_add_signed(d.1)) {
+                (Some(new_y), Some(new_x)) if new_x < self.width && new_y < self.height => res
                     .push((
                         (
-                            (new_x, new_y),
+                            (new_y, new_x),
                             next,
                             if is_straight_on {
                                 num_of_steps_in_dir + 1
@@ -82,7 +82,7 @@ impl Grid {
 
     pub fn successors_part_2(
         &self,
-        ((x, y), dir, num_of_steps_in_dir): &State,
+        ((y, x), dir, num_of_steps_in_dir): &State,
     ) -> Vec<(State, usize)> {
         let mut res = vec![];
 
@@ -94,8 +94,8 @@ impl Grid {
 
             let d = next.get_d();
             if !is_straight_on || *num_of_steps_in_dir == 0 {
-                match (x.checked_add_signed(d.0 * 4), y.checked_add_signed(d.1 * 4)) {
-                    (Some(new_x), Some(new_y)) if new_x < self.width && new_y < self.height => {
+                match (y.checked_add_signed(d.0 * 4), x.checked_add_signed(d.1 * 4)) {
+                    (Some(new_y), Some(new_x)) if new_x < self.width && new_y < self.height => {
                         let mut cost = 0;
                         for cy in min(*y, new_y)..=max(*y, new_y) {
                             for cx in min(*x, new_x)..=max(*x, new_x) {
@@ -104,16 +104,16 @@ impl Grid {
                                 }
                             }
                         }
-                        res.push((((new_x, new_y), next, 4), cost))
+                        res.push((((new_y, new_x), next, 4), cost))
                     }
                     _ => (),
                 }
             } else {
-                match (x.checked_add_signed(d.0), y.checked_add_signed(d.1)) {
-                    (Some(new_x), Some(new_y)) if new_x < self.width && new_y < self.height => res
+                match (y.checked_add_signed(d.0), x.checked_add_signed(d.1)) {
+                    (Some(new_y), Some(new_x)) if new_x < self.width && new_y < self.height => res
                         .push((
                             (
-                                (new_x, new_y),
+                                (new_y, new_x),
                                 next,
                                 if is_straight_on {
                                     num_of_steps_in_dir + 1
@@ -131,11 +131,11 @@ impl Grid {
         res
     }
 
-    pub fn success_part_1(&self, ((x, y), _, _): &State) -> bool {
+    pub fn success_part_1(&self, ((y, x), _, _): &State) -> bool {
         *y == self.grid.len() - 1 && *x == self.grid[0].len() - 1
     }
 
-    pub fn success_part_2(&self, ((x, y), _, num_of_steps_in_dir): &State) -> bool {
+    pub fn success_part_2(&self, ((y, x), _, num_of_steps_in_dir): &State) -> bool {
         *num_of_steps_in_dir >= 4 && *y == self.grid.len() - 1 && *x == self.grid[0].len() - 1
     }
 }

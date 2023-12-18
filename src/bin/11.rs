@@ -49,9 +49,9 @@ fn solve(universe: &Universe, expansion: usize) -> usize {
         for (x, c) in row.iter().enumerate() {
             if *c == '#' {
                 for g in &galaxies {
-                    sum += g.0.abs_diff(x) + g.1.abs_diff(y);
+                    sum += g.1.abs_diff(x) + g.0.abs_diff(y);
                 }
-                galaxies.push((x, y));
+                galaxies.push((y, x));
             }
         }
     }
@@ -88,18 +88,18 @@ fn solve2(universe: &Universe, expansion: usize) -> usize {
                 for g in &galaxies {
                     let num_empty_columns = empty_columns
                         .iter()
-                        .filter(|&&xx| xx > min(g.0, x) && xx < max(g.0, x))
+                        .filter(|&&xx| xx > min(g.1, x) && xx < max(g.1, x))
                         .count();
                     let num_empty_rows = empty_rows
                         .iter()
-                        .filter(|&&yy| yy > min(g.1, y) && yy < max(g.1, y))
+                        .filter(|&&yy| yy > min(g.0, y) && yy < max(g.0, y))
                         .count();
-                    sum += g.0.abs_diff(x)
-                        + g.1.abs_diff(y)
+                    sum += g.1.abs_diff(x)
+                        + g.0.abs_diff(y)
                         + (num_empty_columns * (expansion - 1))
                         + (num_empty_rows * (expansion - 1));
                 }
-                galaxies.push((x, y));
+                galaxies.push((y, x));
             }
         }
         if is_empty {

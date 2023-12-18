@@ -22,12 +22,12 @@ impl Direction {
         }
     }
 
-    pub fn apply(&self, (x, y): Position) -> Position {
+    pub fn apply(&self, (y, x): Position) -> Position {
         match self {
-            Direction::North => (x, y - 1),
-            Direction::South => (x, y + 1),
-            Direction::East => (x + 1, y),
-            Direction::West => (x - 1, y),
+            Direction::North => (y - 1, x),
+            Direction::South => (y + 1, x),
+            Direction::East => (y, x + 1),
+            Direction::West => (y, x - 1),
         }
     }
 }
@@ -69,7 +69,7 @@ impl Grid {
         for (y, row) in self.grid.iter().enumerate() {
             for (x, tile) in row.iter().enumerate() {
                 if *tile == Tile::Start {
-                    return (x, y);
+                    return (y, x);
                 }
             }
         }
@@ -101,20 +101,20 @@ impl Grid {
         )
     }
 
-    pub fn neighbors(&self, (x, y): Position) -> Vec<(Position, Direction, Tile)> {
+    pub fn neighbors(&self, (y, x): Position) -> Vec<(Position, Direction, Tile)> {
         let mut res = Vec::new();
 
         if x > 0 {
-            res.push(((x - 1, y), Direction::West, self.grid[y][x - 1]));
+            res.push(((y, x - 1), Direction::West, self.grid[y][x - 1]));
         }
         if x < self.width() - 1 {
-            res.push(((x + 1, y), Direction::East, self.grid[y][x + 1]));
+            res.push(((y, x + 1), Direction::East, self.grid[y][x + 1]));
         }
         if y > 0 {
-            res.push(((x, y - 1), Direction::North, self.grid[y - 1][x]));
+            res.push(((y - 1, x), Direction::North, self.grid[y - 1][x]));
         }
         if y < self.height() - 1 {
-            res.push(((x, y + 1), Direction::South, self.grid[y + 1][x]));
+            res.push(((y + 1, x), Direction::South, self.grid[y + 1][x]));
         }
 
         res
@@ -125,7 +125,7 @@ impl Grid {
         let mut res = HashMap::from([start]);
 
         while next.0 != start.0 {
-            let tile = self.grid[next.0 .1][next.0 .0];
+            let tile = self.grid[next.0 .0][next.0 .1];
             res.insert(next.0, tile);
 
             if let Some(new_dir) = tile.can_be_reached(next.1) {
@@ -149,7 +149,7 @@ impl Grid {
         for (y, row) in self.grid.iter().enumerate() {
             let mut is_inside = false;
             for x in 0..row.len() {
-                if let Some(tile) = l.get(&(x, y)) {
+                if let Some(tile) = l.get(&(y, x)) {
                     match tile {
                         Tile::Pipe(Direction::North, _) => is_inside = !is_inside,
                         Tile::Start => panic!("aaa"),

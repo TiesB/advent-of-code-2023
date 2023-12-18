@@ -60,7 +60,7 @@ pub fn part_two(input: &str) -> Option<u32> {
                 for (yy, xx) in matrix.neighbours((y, x), true) {
                     let c = matrix[(yy, xx)];
                     if c != '.' && !c.is_ascii_digit() {
-                        nearby.insert((xx, yy));
+                        nearby.insert((yy, xx));
                     }
                 }
 
@@ -71,7 +71,7 @@ pub fn part_two(input: &str) -> Option<u32> {
                 for position in &nearby {
                     symbols
                         .entry(*position)
-                        .or_insert((matrix[(position.1, position.0)], vec![]))
+                        .or_insert((matrix[(position.0, position.1)], vec![]))
                         .1
                         .push(value);
                 }
