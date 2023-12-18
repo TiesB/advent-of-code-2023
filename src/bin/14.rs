@@ -1,9 +1,8 @@
+use pathfinding::matrix::Matrix;
 use std::{
     collections::HashMap,
     hash::{DefaultHasher, Hash, Hasher},
 };
-
-use pathfinding::matrix::Matrix;
 
 advent_of_code::solution!(14);
 
@@ -16,19 +15,13 @@ impl Platform for Matrix<char> {
     fn tilt(&mut self) {
         let mut rocks: Vec<usize> = vec![0; self.columns];
 
-        // let mut moved_to: HashSet<(usize, usize)> = HashSet::new();
-
         for y in 0..self.rows {
             for x in 0..self.columns {
                 let c = self[(y, x)];
                 match c {
                     'O' => {
-                        // if moved_to.contains(&(y, x)) {
-                        //     continue;
-                        // }
                         self[(y, x)] = '.';
                         self[(rocks[x], x)] = 'O';
-                        // moved_to.insert((rocks[x], x));
                         rocks[x] += 1;
                     }
                     '#' => {
@@ -57,15 +50,14 @@ impl Platform for Matrix<char> {
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    let matrix = Matrix::from_rows(input.lines().map(|line| line.chars())).unwrap();
-    let height = matrix.rows;
-
-    let mut rocks: Vec<usize> = vec![0; matrix.columns];
+    let lines: Vec<&str> = input.lines().collect();
+    let height = lines.len();
+    let mut rocks: Vec<usize> = vec![0; lines[0].len()];
 
     let mut res = 0;
-    for (y, row) in matrix.iter().enumerate() {
-        for (x, c) in row.iter().enumerate() {
-            match *c {
+    for (y, row) in lines.iter().enumerate() {
+        for (x, c) in row.chars().enumerate() {
+            match c {
                 'O' => {
                     res += height - rocks[x];
                     rocks[x] += 1;
