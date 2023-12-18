@@ -1,36 +1,7 @@
+use advent_of_code::{Direction, Position};
 use std::collections::HashMap;
 
-use advent_of_code::Position;
-
 advent_of_code::solution!(10);
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum Direction {
-    North,
-    South,
-    East,
-    West,
-}
-
-impl Direction {
-    pub fn reverse(&self) -> Direction {
-        match self {
-            Direction::North => Direction::South,
-            Direction::South => Direction::North,
-            Direction::East => Direction::West,
-            Direction::West => Direction::East,
-        }
-    }
-
-    pub fn apply(&self, (y, x): Position) -> Position {
-        match self {
-            Direction::North => (y - 1, x),
-            Direction::South => (y + 1, x),
-            Direction::East => (y, x + 1),
-            Direction::West => (y, x - 1),
-        }
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Tile {
@@ -105,16 +76,16 @@ impl Grid {
         let mut res = Vec::new();
 
         if x > 0 {
-            res.push(((y, x - 1), Direction::West, self.grid[y][x - 1]));
+            res.push(((y, x - 1), Direction::Horizontal(-1), self.grid[y][x - 1]));
         }
         if x < self.width() - 1 {
-            res.push(((y, x + 1), Direction::East, self.grid[y][x + 1]));
+            res.push(((y, x + 1), Direction::Horizontal(1), self.grid[y][x + 1]));
         }
         if y > 0 {
-            res.push(((y - 1, x), Direction::North, self.grid[y - 1][x]));
+            res.push(((y - 1, x), Direction::Vertical(-1), self.grid[y - 1][x]));
         }
         if y < self.height() - 1 {
-            res.push(((y + 1, x), Direction::South, self.grid[y + 1][x]));
+            res.push(((y + 1, x), Direction::Vertical(1), self.grid[y + 1][x]));
         }
 
         res
@@ -151,7 +122,7 @@ impl Grid {
             for x in 0..row.len() {
                 if let Some(tile) = l.get(&(y, x)) {
                     match tile {
-                        Tile::Pipe(Direction::North, _) => is_inside = !is_inside,
+                        Tile::Pipe(Direction::Vertical(-1), _) => is_inside = !is_inside,
                         Tile::Start => panic!("aaa"),
                         _ => (),
                     }
@@ -176,12 +147,12 @@ impl From<&str> for Grid {
                 .map(|line| {
                     line.chars()
                         .map(|c| match c {
-                            '|' => Tile::Pipe(Direction::North, Direction::South),
-                            '-' => Tile::Pipe(Direction::East, Direction::West),
-                            'L' => Tile::Pipe(Direction::North, Direction::East),
-                            'J' => Tile::Pipe(Direction::North, Direction::West),
-                            '7' => Tile::Pipe(Direction::South, Direction::West),
-                            'F' => Tile::Pipe(Direction::South, Direction::East),
+                            '|' => Tile::Pipe(Direction::Vertical(-1), Direction::Vertical(1)),
+                            '-' => Tile::Pipe(Direction::Horizontal(1), Direction::Horizontal(-1)),
+                            'L' => Tile::Pipe(Direction::Vertical(-1), Direction::Horizontal(1)),
+                            'J' => Tile::Pipe(Direction::Vertical(-1), Direction::Horizontal(-1)),
+                            '7' => Tile::Pipe(Direction::Vertical(1), Direction::Horizontal(-1)),
+                            'F' => Tile::Pipe(Direction::Vertical(1), Direction::Horizontal(1)),
                             '.' => Tile::Ground,
                             'S' => Tile::Start,
                             c => panic!("Unknown char {c}"),

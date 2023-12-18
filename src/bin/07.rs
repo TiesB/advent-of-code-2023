@@ -38,7 +38,6 @@ pub fn part_one(input: &str) -> Option<usize> {
                 score += 100usize.pow(u32::try_from(i).unwrap())
                     * (CHARS_1.iter().position(|&r| r == c).unwrap() + 2)
             }
-            // println!("{} {}", s, score);
 
             let mut pairs = 0;
             let mut has_three = false;
@@ -98,7 +97,6 @@ pub fn part_one(input: &str) -> Option<usize> {
         .fold(0usize, |total, (i, (_s, _score, bid))| {
             total + (i + 1) * bid
         }); // decreasing order
-            // println!("{:?}", x);
     Some(res)
 }
 

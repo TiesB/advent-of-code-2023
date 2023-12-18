@@ -107,7 +107,6 @@ pub fn part_two(input: &str) -> Option<i64> {
         }
         seeds_ranges = new_ranges;
     }
-    // println!("===== {seeds_ranges:?} +++++++++");
 
     seeds_ranges.iter().map(|r| r.start).min()
 }

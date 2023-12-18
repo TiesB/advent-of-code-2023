@@ -1,15 +1,14 @@
+use advent_of_code::Direction;
 use rayon::prelude::*;
 
 advent_of_code::solution!(16);
 
-#[derive(Clone, Copy)]
-enum Direction {
-    Horizontal(isize),
-    Vertical(isize),
+trait GetBd {
+    fn get_bd(&self) -> u8;
 }
 
-impl Direction {
-    pub fn get_bd(&self) -> u8 {
+impl GetBd for Direction {
+    fn get_bd(&self) -> u8 {
         match self {
             Direction::Horizontal(1) => 0b1000,
             Direction::Vertical(1) => 0b0010,

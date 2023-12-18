@@ -1,17 +1,17 @@
-use advent_of_code::Position;
+use advent_of_code::{Direction, Position};
 use pathfinding::directed::dijkstra::dijkstra;
 use std::cmp::{max, min};
 
 advent_of_code::solution!(17);
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-enum Direction {
-    Horizontal(isize),
-    Vertical(isize),
+trait GetNext {
+    fn get_next(&self) -> Vec<Self>
+    where
+        Self: std::marker::Sized;
 }
 
-impl Direction {
-    pub fn get_next(&self) -> Vec<Self> {
+impl GetNext for Direction {
+    fn get_next(&self) -> Vec<Self> {
         match self {
             Direction::Horizontal(d) => vec![
                 Direction::Vertical(-1),
@@ -23,13 +23,6 @@ impl Direction {
                 Direction::Horizontal(1),
                 Direction::Vertical(*d),
             ],
-        }
-    }
-
-    pub fn get_d(&self) -> (isize, isize) {
-        match self {
-            Direction::Horizontal(d) => (0, *d),
-            Direction::Vertical(d) => (*d, 0),
         }
     }
 }
