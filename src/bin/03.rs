@@ -1,53 +1,26 @@
 use std::collections::{HashMap, HashSet};
 
+use advent_of_code::{matrix_from_input, Position};
+
 advent_of_code::solution!(3);
 
-type Position = (usize, usize);
-
-type Input = Vec<Vec<char>>;
-
-pub fn parse_input(input: &str) -> Input {
-    input.lines().map(|line| line.chars().collect()).collect()
-}
-
-fn neighbors((x, y): &Position) -> HashSet<Position> {
-    [
-        (-1, 0),
-        (1, 0),
-        (0, -1),
-        (0, 1),
-        (-1, -1),
-        (-1, 1),
-        (1, -1),
-        (1, 1),
-    ]
-    .iter()
-    .map(|&(dx, dy)| (x.saturating_add_signed(dx), y.saturating_add_signed(dy)))
-    .collect()
-}
-
 pub fn part_one(input: &str) -> Option<u32> {
-    let parsed = parse_input(input);
-
-    let width = parsed[0].len();
-    let height = parsed.len();
+    let matrix = matrix_from_input(input);
 
     let mut value = "".to_string();
     let mut found = false;
 
     let mut res = 0;
-    for y in 0..height {
+    for y in 0..matrix.rows {
         let mut x = 0;
-        while x < width {
-            while x < width && parsed[y][x].is_ascii_digit() {
-                value.push(parsed[y][x]);
+        while x < matrix.columns {
+            while x < matrix.columns && matrix[(y, x)].is_ascii_digit() {
+                value.push(matrix[(y, x)]);
                 if !found {
-                    for (xx, yy) in neighbors(&(x, y)) {
-                        if xx < width && yy < height {
-                            let c = parsed[yy][xx];
-                            if c != '.' && !c.is_ascii_digit() {
-                                found = true;
-                            }
+                    for (yy, xx) in matrix.neighbours((y, x), true) {
+                        let c = matrix[(yy, xx)];
+                        if c != '.' && !c.is_ascii_digit() {
+                            found = true;
                         }
                     }
                 }
@@ -70,10 +43,7 @@ pub fn part_one(input: &str) -> Option<u32> {
 
 // I'll need to optimize this one at some point
 pub fn part_two(input: &str) -> Option<u32> {
-    let parsed = parse_input(input);
-
-    let width = parsed[0].len();
-    let height = parsed.len();
+    let matrix = matrix_from_input(input);
 
     let mut res = 0;
 
@@ -82,17 +52,15 @@ pub fn part_two(input: &str) -> Option<u32> {
     let mut value = 0;
     let mut nearby: HashSet<Position> = HashSet::new();
 
-    for (y, line) in parsed.iter().enumerate() {
+    for (y, line) in matrix.iter().enumerate() {
         let mut x = 0;
-        while x < width {
-            while x < width && line[x].is_ascii_digit() {
+        while x < matrix.columns {
+            while x < matrix.columns && line[x].is_ascii_digit() {
                 value = value * 10 + line[x].to_digit(10).unwrap();
-                for (xx, yy) in neighbors(&(x, y)) {
-                    if xx < width && yy < height {
-                        let c = parsed[yy][xx];
-                        if c != '.' && !c.is_ascii_digit() {
-                            nearby.insert((xx, yy));
-                        }
+                for (yy, xx) in matrix.neighbours((y, x), true) {
+                    let c = matrix[(yy, xx)];
+                    if c != '.' && !c.is_ascii_digit() {
+                        nearby.insert((xx, yy));
                     }
                 }
 
@@ -103,7 +71,7 @@ pub fn part_two(input: &str) -> Option<u32> {
                 for position in &nearby {
                     symbols
                         .entry(*position)
-                        .or_insert((parsed[position.1][position.0], vec![]))
+                        .or_insert((matrix[(position.1, position.0)], vec![]))
                         .1
                         .push(value);
                 }

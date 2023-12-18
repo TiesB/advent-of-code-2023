@@ -1,14 +1,13 @@
 use std::cmp::min;
 
+use advent_of_code::vecvec;
+
 advent_of_code::solution!(13);
 
 type Pattern = Vec<Vec<char>>;
 
 fn parse(input: &str) -> Vec<Pattern> {
-    input
-        .split("\n\n")
-        .map(|pattern| pattern.lines().map(|line| line.chars().collect()).collect())
-        .collect()
+    input.split("\n\n").map(vecvec).collect()
 }
 
 fn find_horizontal(pattern: &Pattern, num_error: usize) -> Option<usize> {

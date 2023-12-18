@@ -1,3 +1,4 @@
+use advent_of_code::{vecvec, Position};
 use std::{
     cmp::{max, min},
     collections::HashSet,
@@ -7,10 +8,6 @@ advent_of_code::solution!(11);
 
 type Row = Vec<char>;
 type Universe = Vec<Row>;
-
-fn parse_input(input: &str) -> Universe {
-    input.lines().map(|line| line.chars().collect()).collect()
-}
 
 fn expand(universe: &Universe, expansion: usize) -> Universe {
     let height = universe.len();
@@ -42,8 +39,6 @@ fn expand(universe: &Universe, expansion: usize) -> Universe {
 
     expanded
 }
-
-type Position = (usize, usize);
 
 fn solve(universe: &Universe, expansion: usize) -> usize {
     let expanded = expand(universe, expansion);
@@ -116,11 +111,11 @@ fn solve2(universe: &Universe, expansion: usize) -> usize {
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    Some(solve(&parse_input(input), 2))
+    Some(solve(&vecvec(input), 2))
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    Some(solve2(&parse_input(input), 1000000))
+    Some(solve2(&vecvec(input), 1000000))
 }
 
 #[cfg(test)]
@@ -129,14 +124,14 @@ mod tests {
 
     #[test]
     fn test_solve1() {
-        let universe = parse_input(&advent_of_code::template::read_file("examples", DAY));
+        let universe = vecvec(&advent_of_code::template::read_file("examples", DAY));
         let result = solve(&universe, 2);
         assert_eq!(result, 374);
     }
 
     #[test]
     fn test_solve2() {
-        let universe = parse_input(&advent_of_code::template::read_file("examples", DAY));
+        let universe = vecvec(&advent_of_code::template::read_file("examples", DAY));
         let result = solve(&universe, 100);
         assert_eq!(result, 8410);
     }

@@ -1,3 +1,4 @@
+use advent_of_code::matrix_from_input;
 use pathfinding::matrix::Matrix;
 use std::{
     collections::HashMap,
@@ -82,8 +83,7 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
 pub fn part_two(input: &str) -> Option<usize> {
     let n = 1000000000;
 
-    let mut matrix: Matrix<char> =
-        Matrix::from_rows(input.lines().map(|line| line.chars())).unwrap();
+    let mut matrix = matrix_from_input(input);
 
     let mut m: HashMap<u64, usize> = HashMap::new();
 

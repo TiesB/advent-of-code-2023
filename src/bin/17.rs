@@ -1,3 +1,4 @@
+use advent_of_code::Position;
 use pathfinding::directed::dijkstra::dijkstra;
 use std::cmp::{max, min};
 
@@ -33,7 +34,6 @@ impl Direction {
     }
 }
 
-type Position = (usize, usize);
 type State = (Position, Direction, usize); // (position, dir, num_of_steps_in_dir)
 
 type GridT = Vec<Vec<usize>>;

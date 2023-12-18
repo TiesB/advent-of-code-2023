@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-advent_of_code::solution!(10);
+use advent_of_code::Position;
 
-type Position = (usize, usize);
+advent_of_code::solution!(10);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Direction {
