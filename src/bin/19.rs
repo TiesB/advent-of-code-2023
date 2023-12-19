@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    ops::Range,
-};
+use std::collections::{HashMap, HashSet};
 
 advent_of_code::solution!(19);
 
@@ -24,7 +21,7 @@ impl From<&str> for Category {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 struct Part {
     x: usize,
     m: usize,
@@ -46,15 +43,15 @@ impl Part {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 struct Ranges {
-    x: Range<usize>,
-    m: Range<usize>,
-    a: Range<usize>,
-    s: Range<usize>,
+    x: (usize, usize),
+    m: (usize, usize),
+    a: (usize, usize),
+    s: (usize, usize),
 }
 impl Ranges {
-    pub fn get_mut(&mut self, category: &Category) -> &mut Range<usize> {
+    pub fn get_mut(&mut self, category: &Category) -> &mut (usize, usize) {
         match category {
             Category::X => &mut self.x,
             Category::M => &mut self.m,
@@ -64,7 +61,10 @@ impl Ranges {
     }
 
     pub fn total(&self) -> usize {
-        self.x.len() * self.m.len() * self.a.len() * self.s.len()
+        (self.x.1 - self.x.0)
+            * (self.m.1 - self.m.0)
+            * (self.a.1 - self.a.0)
+            * (self.s.1 - self.s.0)
     }
 }
 
@@ -159,12 +159,16 @@ fn parse_input(input: &str, part_2: bool) -> (HashMap<Target, Workflow>, Option<
                 parts
                     .lines()
                     .map(|line| {
-                        let categories: Vec<&str> = line[1..line.len() - 1].split(',').collect();
+                        let categories: Vec<usize> = line
+                            .split(|c: char| !c.is_numeric())
+                            .filter(|s| !s.is_empty())
+                            .map(|s| s.parse().unwrap())
+                            .collect();
                         Part {
-                            x: categories[0][2..].parse().unwrap(),
-                            m: categories[1][2..].parse().unwrap(),
-                            a: categories[2][2..].parse().unwrap(),
-                            s: categories[3][2..].parse().unwrap(),
+                            x: categories[0],
+                            m: categories[1],
+                            a: categories[2],
+                            s: categories[3],
                         }
                     })
                     .collect(),
@@ -175,6 +179,7 @@ fn parse_input(input: &str, part_2: bool) -> (HashMap<Target, Workflow>, Option<
 
 pub fn part_one(input: &str) -> Option<usize> {
     let (workflows, parts) = parse_input(input, false);
+
     Some(
         parts
             .unwrap()
@@ -214,7 +219,7 @@ fn num_accepted(
 
     if let Some(workflow) = workflows.get(target) {
         for operation in workflow {
-            let mut new_ranges = ranges.clone();
+            let mut new_ranges = ranges;
             match operation {
                 Operation::True(new_target) => {
                     return sum + num_accepted(workflows, new_target, ranges)
@@ -222,23 +227,23 @@ fn num_accepted(
                 Operation::Gt(new_target, category, value) => {
                     let range = ranges.get_mut(category);
 
-                    if range.contains(value) {
+                    if *value >= range.0 && *value < range.1 {
                         let new_range = new_ranges.get_mut(category);
-                        new_range.start = *value + 1;
+                        new_range.0 = *value + 1;
                         sum += num_accepted(workflows, new_target, new_ranges);
 
-                        range.end = *value + 1;
+                        range.1 = *value + 1;
                     }
                 }
                 Operation::Lt(new_target, category, value) => {
                     let range = ranges.get_mut(category);
 
-                    if range.contains(value) {
+                    if *value >= range.0 && *value < range.1 {
                         let new_range = new_ranges.get_mut(category);
-                        new_range.end = *value;
+                        new_range.1 = *value;
                         sum += num_accepted(workflows, new_target, new_ranges);
 
-                        range.start = *value;
+                        range.0 = *value;
                     }
                 }
             }
@@ -253,10 +258,10 @@ pub fn part_two(input: &str) -> Option<usize> {
     let (workflows, _) = parse_input(input, true);
 
     let start_ranges = Ranges {
-        x: 1..4001,
-        m: 1..4001,
-        a: 1..4001,
-        s: 1..4001,
+        x: (1, 4001),
+        m: (1, 4001),
+        a: (1, 4001),
+        s: (1, 4001),
     };
 
     Some(num_accepted(
