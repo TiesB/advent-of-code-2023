@@ -25,6 +25,7 @@ dependencies = [
  "dhat",
  "indexmap",
  "itertools",
+ "lazy_static",
  "num",
  "pathfinding",
  "petgraph",
