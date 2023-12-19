@@ -3,8 +3,26 @@ use std::{
     ops::Range,
 };
 
-// I'd like a solution with less `.clone()`s
 advent_of_code::solution!(19);
+
+#[derive(Debug)]
+enum Category {
+    X,
+    M,
+    A,
+    S,
+}
+impl From<&str> for Category {
+    fn from(value: &str) -> Self {
+        match value {
+            "x" => Category::X,
+            "m" => Category::M,
+            "a" => Category::A,
+            "s" => Category::S,
+            _ => panic!(),
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct Part {
@@ -13,15 +31,13 @@ struct Part {
     a: usize,
     s: usize,
 }
-
 impl Part {
-    pub fn get(&self, c: &str) -> usize {
-        match c {
-            "x" => self.x,
-            "m" => self.m,
-            "a" => self.a,
-            "s" => self.s,
-            _ => panic!(),
+    pub fn get(&self, category: &Category) -> usize {
+        match category {
+            Category::X => self.x,
+            Category::M => self.m,
+            Category::A => self.a,
+            Category::S => self.s,
         }
     }
 
@@ -32,116 +48,66 @@ impl Part {
 
 #[derive(Clone, Debug)]
 struct Ranges {
-    x: Vec<Range<usize>>,
-    m: Vec<Range<usize>>,
-    a: Vec<Range<usize>>,
-    s: Vec<Range<usize>>,
+    x: Range<usize>,
+    m: Range<usize>,
+    a: Range<usize>,
+    s: Range<usize>,
 }
-
 impl Ranges {
-    pub fn empty() -> Ranges {
-        Ranges {
-            x: vec![],
-            m: vec![],
-            a: vec![],
-            s: vec![],
-        }
-    }
-
-    pub fn get(&self, c: &str) -> &Vec<Range<usize>> {
-        match c {
-            "x" => &self.x,
-            "m" => &self.m,
-            "a" => &self.a,
-            "s" => &self.s,
-            _ => panic!(),
-        }
-    }
-
-    pub fn get_mut(&mut self, c: &str) -> &mut Vec<Range<usize>> {
-        match c {
-            "x" => &mut self.x,
-            "m" => &mut self.m,
-            "a" => &mut self.a,
-            "s" => &mut self.s,
-            _ => panic!(),
+    pub fn get_mut(&mut self, category: &Category) -> &mut Range<usize> {
+        match category {
+            Category::X => &mut self.x,
+            Category::M => &mut self.m,
+            Category::A => &mut self.a,
+            Category::S => &mut self.s,
         }
     }
 
     pub fn total(&self) -> usize {
-        self.x.iter().map(|r| r.len()).sum::<usize>()
-            * self.m.iter().map(|r| r.len()).sum::<usize>()
-            * self.a.iter().map(|r| r.len()).sum::<usize>()
-            * self.s.iter().map(|r| r.len()).sum::<usize>()
+        self.x.len() * self.m.len() * self.a.len() * self.s.len()
+    }
+}
+
+#[derive(Debug, Eq, Hash, PartialEq)]
+enum Target<'a> {
+    Accept,
+    Reject,
+    Workflow(&'a str),
+}
+impl<'a> From<&'a str> for Target<'a> {
+    fn from(value: &'a str) -> Self {
+        match value {
+            "A" => Target::Accept,
+            "R" => Target::Reject,
+            workflow => Target::Workflow(workflow),
+        }
     }
 }
 
 #[derive(Debug)]
-enum Op {
-    True,
-    Gt,
-    Lt,
-}
-
-#[derive(Debug)]
-struct Operation<'a> {
-    target: &'a str,
-    att: Option<&'a str>,
-    op: Op,
-    val: Option<usize>,
+enum Operation<'a> {
+    True(Target<'a>),
+    Gt(Target<'a>, Category, usize),
+    Lt(Target<'a>, Category, usize),
 }
 
 impl Operation<'_> {
-    pub fn apply(&self, part: &Part) -> bool {
-        match self.op {
-            Op::True => true,
-            Op::Gt => part.get(self.att.unwrap()) > self.val.unwrap(),
-            Op::Lt => part.get(self.att.unwrap()) < self.val.unwrap(),
-        }
-    }
-
-    pub fn apply_ranges(&self, ranges: &Ranges) -> (Ranges, Ranges) {
-        match self.op {
-            Op::True => (ranges.clone(), Ranges::empty()),
-            Op::Gt => {
-                let v = self.val.unwrap();
-                let mut t = ranges.clone();
-                let t_att = t.get_mut(self.att.unwrap());
-                t_att.clear();
-                let mut f = ranges.clone();
-                let f_att = f.get_mut(self.att.unwrap());
-                f_att.clear();
-
-                for r in ranges.get(self.att.unwrap()) {
-                    if r.contains(&v) {
-                        t_att.push(v + 1..r.end);
-                        f_att.push(r.start..v + 1);
-                    } else {
-                        f_att.push(r.clone());
-                    }
+    pub fn apply(&self, part: &Part) -> Option<&Target> {
+        match self {
+            Operation::True(target) => Some(target),
+            Operation::Gt(target, category, value) => {
+                if part.get(category) > *value {
+                    Some(target)
+                } else {
+                    None
                 }
-
-                (t, f)
             }
-            Op::Lt => {
-                let v = self.val.unwrap();
-                let mut t = ranges.clone();
-                let t_att = t.get_mut(self.att.unwrap());
-                t_att.clear();
-                let mut f = ranges.clone();
-                let f_att = f.get_mut(self.att.unwrap());
-                f_att.clear();
-
-                for r in ranges.get(self.att.unwrap()) {
-                    if r.contains(&v) {
-                        t_att.push(r.start..v);
-                        f_att.push(v..r.end);
-                    } else {
-                        f_att.push(r.clone());
-                    }
+            Operation::Lt(target, category, value) => {
+                if part.get(category) < *value {
+                    Some(target)
+                } else {
+                    None
                 }
-
-                (t, f)
             }
         }
     }
@@ -151,44 +117,37 @@ type Workflow<'a> = Vec<Operation<'a>>;
 
 fn parse_operation(input: &str) -> Operation {
     if let Some((op, target)) = input.split_once(':') {
-        if let Some((cat, val_s)) = op.split_once('>') {
-            Operation {
-                target,
-                att: Some(cat),
-                op: Op::Gt,
-                val: Some(val_s.parse::<usize>().unwrap()),
-            }
-        } else if let Some((cat, val_s)) = op.split_once('<') {
-            Operation {
-                target,
-                att: Some(cat),
-                op: Op::Lt,
-                val: Some(val_s.parse::<usize>().unwrap()),
-            }
+        if let Some((cat, val)) = op.split_once('>') {
+            Operation::Gt(
+                Target::from(target),
+                Category::from(cat),
+                val.parse().unwrap(),
+            )
+        } else if let Some((cat, val)) = op.split_once('<') {
+            Operation::Lt(
+                Target::from(target),
+                Category::from(cat),
+                val.parse().unwrap(),
+            )
         } else {
             panic!()
         }
     } else {
-        Operation {
-            target: input,
-            att: None,
-            op: Op::True,
-            val: None,
-        }
+        Operation::True(Target::from(input))
     }
 }
 
-fn parse_workflow(input: &str) -> (&str, Workflow) {
+fn parse_workflow(input: &str) -> (Target, Workflow) {
     let (name, rest) = input.split_once('{').unwrap();
     (
-        name,
+        Target::Workflow(name),
         rest.split_terminator(&[',', '}'])
             .map(parse_operation)
             .collect(),
     )
 }
 
-fn parse_input(input: &str, part_2: bool) -> (HashMap<&str, Workflow>, Option<HashSet<Part>>) {
+fn parse_input(input: &str, part_2: bool) -> (HashMap<Target, Workflow>, Option<HashSet<Part>>) {
     let (workflows, parts) = input.split_once("\n\n").unwrap();
 
     (
@@ -221,20 +180,16 @@ pub fn part_one(input: &str) -> Option<usize> {
             .unwrap()
             .iter()
             .map(|part| {
-                let mut target = "in";
-                while target != "A" && target != "R" {
-                    if let Some(workflow) = workflows.get(target) {
-                        for operation in workflow {
-                            if operation.apply(part) {
-                                target = operation.target;
-                                break;
-                            }
+                let mut target = &Target::Workflow("in");
+                while let Some(workflow) = workflows.get(target) {
+                    for operation in workflow {
+                        if let Some(new_target) = operation.apply(part) {
+                            target = new_target;
+                            break;
                         }
-                    } else {
-                        panic!()
                     }
                 }
-                if target == "A" {
+                if let Target::Accept = target {
                     part.sum()
                 } else {
                     0
@@ -244,29 +199,53 @@ pub fn part_one(input: &str) -> Option<usize> {
     )
 }
 
-fn num_accepted(workflows: &HashMap<&str, Workflow>, target: &str, ranges: &Ranges) -> usize {
+fn num_accepted(
+    workflows: &HashMap<Target, Workflow>,
+    target: &Target,
+    mut ranges: Ranges,
+) -> usize {
+    if let Target::Accept = target {
+        return ranges.total();
+    } else if let Target::Reject = target {
+        return 0;
+    }
+
     let mut sum = 0;
 
     if let Some(workflow) = workflows.get(target) {
-        let mut remaining = ranges.clone();
         for operation in workflow {
-            let (t, f) = operation.apply_ranges(&remaining);
-            remaining = f;
-            match operation.target {
-                "A" => {
-                    sum += t.total();
+            let mut new_ranges = ranges.clone();
+            match operation {
+                Operation::True(new_target) => {
+                    return sum + num_accepted(workflows, new_target, ranges)
                 }
-                "R" => {}
-                op_target => {
-                    sum += num_accepted(workflows, op_target, &t);
+                Operation::Gt(new_target, category, value) => {
+                    let range = ranges.get_mut(category);
+
+                    if range.contains(value) {
+                        let new_range = new_ranges.get_mut(category);
+                        new_range.start = *value + 1;
+                        sum += num_accepted(workflows, new_target, new_ranges);
+
+                        range.end = *value + 1;
+                    }
+                }
+                Operation::Lt(new_target, category, value) => {
+                    let range = ranges.get_mut(category);
+
+                    if range.contains(value) {
+                        let new_range = new_ranges.get_mut(category);
+                        new_range.end = *value;
+                        sum += num_accepted(workflows, new_target, new_ranges);
+
+                        range.start = *value;
+                    }
                 }
             }
         }
-    } else {
-        panic!()
     }
 
-    sum
+    panic!()
 }
 
 #[allow(clippy::single_range_in_vec_init)]
@@ -274,13 +253,17 @@ pub fn part_two(input: &str) -> Option<usize> {
     let (workflows, _) = parse_input(input, true);
 
     let start_ranges = Ranges {
-        x: vec![1..4001],
-        m: vec![1..4001],
-        a: vec![1..4001],
-        s: vec![1..4001],
+        x: 1..4001,
+        m: 1..4001,
+        a: 1..4001,
+        s: 1..4001,
     };
 
-    Some(num_accepted(&workflows, "in", &start_ranges))
+    Some(num_accepted(
+        &workflows,
+        &Target::Workflow("in"),
+        start_ranges,
+    ))
 }
 
 #[cfg(test)]
