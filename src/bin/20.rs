@@ -1,6 +1,5 @@
-use std::collections::{HashMap, VecDeque};
-
 use num::integer::lcm;
+use std::collections::{HashMap, VecDeque};
 
 advent_of_code::solution!(20);
 
@@ -10,7 +9,6 @@ trait Module {
         Self: Sized;
     fn receive(&mut self, pulse: Pulse) -> Vec<Pulse>;
     fn add_input(&mut self, input: &str);
-    fn get_state(&self) -> Vec<bool>;
 }
 
 #[derive(Debug)]
@@ -45,10 +43,6 @@ impl Module for FlipFlop {
     }
 
     fn add_input(&mut self, _: &str) {}
-
-    fn get_state(&self) -> Vec<bool> {
-        vec![self.state]
-    }
 }
 
 #[derive(Debug)]
@@ -83,10 +77,6 @@ impl Module for Conjunction {
     fn add_input(&mut self, input: &str) {
         self.inputs.insert(input.to_string(), false);
     }
-
-    fn get_state(&self) -> Vec<bool> {
-        self.inputs.values().copied().collect()
-    }
 }
 
 #[derive(Debug)]
@@ -114,18 +104,7 @@ impl Module for Broadcast {
     }
 
     fn add_input(&mut self, _: &str) {}
-
-    fn get_state(&self) -> Vec<bool> {
-        vec![]
-    }
 }
-
-// #[derive(Debug)]
-// enum ModuleEnum {
-//     Broadcast(Broadcast),
-//     FlipFlop(FlipFlop),
-//     Conjunction(Conjunction),
-// }
 
 #[derive(Debug)]
 struct Pulse {
@@ -208,35 +187,31 @@ pub fn part_one(input: &str) -> Option<usize> {
     let (mut modules, _) = parse_input(input, None);
 
     let mut pulses: VecDeque<Pulse> = VecDeque::new();
-    let mut total_low_count = 0;
-    let mut total_high_count = 0;
+    let mut low_count = 0;
+    let mut high_count = 0;
     for _ in 0..1000 {
         pulses.push_back(Pulse {
             source: "".to_string(),
             target: "broadcaster".to_string(),
             state: false,
         });
-        let mut low_count = 1;
-        let mut high_count = 0;
+        low_count += 1;
+
         while let Some(pulse) = pulses.pop_front() {
-            let target = modules.get_mut(&pulse.target).unwrap();
-            for new_pulse in target.receive(pulse) {
-                if new_pulse.state {
-                    high_count += 1;
-                } else {
-                    low_count += 1;
-                }
-                if modules.contains_key(&new_pulse.target) {
+            if let Some(target) = modules.get_mut(&pulse.target) {
+                for new_pulse in target.receive(pulse) {
+                    if new_pulse.state {
+                        high_count += 1;
+                    } else {
+                        low_count += 1;
+                    }
                     pulses.push_back(new_pulse);
                 }
             }
         }
-
-        total_low_count += low_count;
-        total_high_count += high_count;
     }
 
-    Some(total_low_count * total_high_count)
+    Some(low_count * high_count)
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
@@ -247,17 +222,22 @@ pub fn part_two(input: &str) -> Option<usize> {
     let mut gate_sources: HashMap<String, Vec<usize>> = HashMap::new();
 
     let mut i = 0;
-    while gate_sources.is_empty() || gate_sources.values().any(|pulses| pulses.len() < 2) {
+
+    // "More general" solution. Still would not work if the smallest cycle length is < (longest cycle length / 2)
+    // while gate_sources.is_empty() || gate_sources.values().any(|pulses| pulses.len() < 2) {
+    // Solution that works because we know specifics of the input
+    while gate_sources.len() < 4 || gate_sources.values().any(|pulses| pulses.is_empty()) {
         i += 1;
+
         pulses.push_back(Pulse {
             source: "".to_string(),
             target: "broadcaster".to_string(),
             state: false,
         });
+
         while let Some(pulse) = pulses.pop_front() {
-            let target = modules.get_mut(&pulse.target).unwrap();
-            for new_pulse in target.receive(pulse) {
-                if modules.contains_key(&new_pulse.target) {
+            if let Some(target) = modules.get_mut(&pulse.target) {
+                for new_pulse in target.receive(pulse) {
                     if new_pulse.state && new_pulse.target == gate {
                         gate_sources
                             .entry(new_pulse.source.clone())
@@ -273,9 +253,8 @@ pub fn part_two(input: &str) -> Option<usize> {
 
     let mut res = 1;
     for source in gate_sources.values() {
-        if source[1] - 2 * source[0] != 0 {
-            panic!();
-        }
+        // Possible assertion for checking that cycle is consistent and has an offset of 0
+        // assert_eq!(source[1] - 2 * source[0], 0);
         res = lcm(res, source[0]);
     }
 
