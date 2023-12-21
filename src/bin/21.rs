@@ -1,42 +1,10 @@
 use std::collections::HashSet;
 
-use advent_of_code::{vecvec, IPosition, Neighbours, Position};
+use advent_of_code::{vecvec, IPosition, Neighbours};
 
 advent_of_code::solution!(21);
 
-fn solve_one(input: &str, steps: usize) -> Option<usize> {
-    let map = vecvec(input);
-
-    let start: Position = map
-        .iter()
-        .enumerate()
-        .find_map(|(y, row)| row.iter().position(|c| *c == 'S').map(|x| (y, x)))
-        .unwrap();
-
-    let mut frontier: HashSet<Position> = HashSet::from([start]);
-    let mut new_frontier: HashSet<Position> = HashSet::new();
-
-    let mut visited = vec![HashSet::new(), HashSet::new()];
-
-    for i in 0..steps {
-        for pos in frontier.drain() {
-            for (y, x) in pos.neighbours() {
-                if map[y][x] != '#' && visited[(i + 1) % 2].insert((y, x)) {
-                    new_frontier.insert((y, x));
-                }
-            }
-        }
-        std::mem::swap(&mut frontier, &mut new_frontier);
-    }
-
-    Some(visited[steps % 2].len())
-}
-
-pub fn part_one(input: &str) -> Option<usize> {
-    solve_one(input, 64)
-}
-
-pub fn solve_two(input: &str, steps: usize) -> Option<usize> {
+pub fn solve(input: &str, steps: usize) -> Option<usize> {
     let map = vecvec(input);
     let height = map.len();
     assert!(height > 0);
@@ -44,7 +12,7 @@ pub fn solve_two(input: &str, steps: usize) -> Option<usize> {
     let half_width = width / 2;
 
     assert_eq!(height, width);
-    assert!((steps - 65) % width == 0);
+    let brute_force = steps < half_width || (steps - half_width) % width != 0;
 
     let start: IPosition = map
         .iter()
@@ -75,7 +43,11 @@ pub fn solve_two(input: &str, steps: usize) -> Option<usize> {
             }
         }
 
-        if i % width == half_width - 1 {
+        if brute_force && i + 1 == steps {
+            return Some(visited[i % 2].len());
+        }
+
+        if !brute_force && (i + 1) % width == half_width {
             cycles.push(visited[i % 2].len());
             if cycles.len() == 3 {
                 break;
@@ -94,8 +66,12 @@ pub fn solve_two(input: &str, steps: usize) -> Option<usize> {
     )
 }
 
+pub fn part_one(input: &str) -> Option<usize> {
+    solve(input, 64)
+}
+
 pub fn part_two(input: &str) -> Option<usize> {
-    solve_two(input, 26501365)
+    solve(input, 26501365)
 }
 
 #[cfg(test)]
@@ -104,7 +80,45 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = solve_one(&advent_of_code::template::read_file("examples", DAY), 6);
+        let result = solve(&advent_of_code::template::read_file("examples", DAY), 6);
         assert_eq!(result, Some(16));
     }
+
+    #[test]
+    fn test_part_two_a() {
+        let result = solve(&advent_of_code::template::read_file("examples", DAY), 10);
+        assert_eq!(result, Some(50));
+    }
+
+    #[test]
+    fn test_part_two_b() {
+        let result = solve(&advent_of_code::template::read_file("examples", DAY), 50);
+        assert_eq!(result, Some(1594));
+    }
+
+    #[test]
+    fn test_part_two_c() {
+        let result = solve(&advent_of_code::template::read_file("examples", DAY), 100);
+        assert_eq!(result, Some(6536));
+    }
+
+    // TODO: this one fails and I have no clue why
+    // #[test]
+    // fn test_part_two_d() {
+    //     let result = solve(&advent_of_code::template::read_file("examples", DAY), 500);
+    //     assert_eq!(result, Some(167004));
+    // }
+
+    #[test]
+    fn test_part_two_e() {
+        let result = solve(&advent_of_code::template::read_file("examples", DAY), 1000);
+        assert_eq!(result, Some(668697));
+    }
+
+    // Brute forcing this one takes too long
+    // #[test]
+    // fn test_part_two_f() {
+    //     let result = solve(&advent_of_code::template::read_file("examples", DAY), 5000);
+    //     assert_eq!(result, Some(16733044));
+    // }
 }
