@@ -1,4 +1,4 @@
-use advent_of_code::{Direction, Position};
+use advent_of_code::{Apply, Direction, Position};
 use std::collections::HashMap;
 
 advent_of_code::solution!(10);

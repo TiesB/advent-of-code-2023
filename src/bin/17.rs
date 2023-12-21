@@ -52,7 +52,10 @@ impl Grid {
             }
 
             let d = next.get_d();
-            match (y.checked_add_signed(d.0), x.checked_add_signed(d.1)) {
+            match (
+                y.checked_add_signed(d.0 as isize),
+                x.checked_add_signed(d.1 as isize),
+            ) {
                 (Some(new_y), Some(new_x)) if new_x < self.width && new_y < self.height => res
                     .push((
                         (
@@ -87,7 +90,10 @@ impl Grid {
 
             let d = next.get_d();
             if !is_straight_on || *num_of_steps_in_dir == 0 {
-                match (y.checked_add_signed(d.0 * 4), x.checked_add_signed(d.1 * 4)) {
+                match (
+                    y.checked_add_signed(d.0 as isize * 4),
+                    x.checked_add_signed(d.1 as isize * 4),
+                ) {
                     (Some(new_y), Some(new_x)) if new_x < self.width && new_y < self.height => {
                         let mut cost = 0;
                         for cy in min(*y, new_y)..=max(*y, new_y) {
@@ -102,7 +108,10 @@ impl Grid {
                     _ => (),
                 }
             } else {
-                match (y.checked_add_signed(d.0), x.checked_add_signed(d.1)) {
+                match (
+                    y.checked_add_signed(d.0 as isize),
+                    x.checked_add_signed(d.1 as isize),
+                ) {
                     (Some(new_y), Some(new_x)) if new_x < self.width && new_y < self.height => res
                         .push((
                             (

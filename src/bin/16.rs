@@ -33,10 +33,10 @@ fn run(i_map: &Map, starting_beam: Beam) -> usize {
         for (pos, dir) in &mut beams {
             match dir {
                 Direction::Horizontal(d) => {
-                    pos.0 += *d;
+                    pos.0 += *d as isize;
                 }
                 Direction::Vertical(d) => {
-                    pos.1 += *d;
+                    pos.1 += *d as isize;
                 }
             }
 
